@@ -32,7 +32,7 @@ export class Message {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column(() => Session)
+  @Column()
   sessionId: string;
 
   @ManyToOne(() => Session, session => session.messages)
