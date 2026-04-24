@@ -44,7 +44,7 @@ describe('SessionSidebar', () => {
         props: { sessions, currentSessionId: '1' },
       })
 
-      const currentSessionEl = wrapper.findAll('.group').at(0)
+      const currentSessionEl = wrapper.findAll('.group')[0]
       expect(currentSessionEl?.classes()).toContain('bg-blue-50')
       expect(currentSessionEl?.classes()).toContain('text-blue-700')
     })
@@ -58,7 +58,7 @@ describe('SessionSidebar', () => {
         props: { sessions, currentSessionId: '1' },
       })
 
-      const nonCurrentSessionEl = wrapper.findAll('.group').at(1)
+      const nonCurrentSessionEl = wrapper.findAll('.group')[1]
       expect(nonCurrentSessionEl?.classes()).not.toContain('bg-blue-50')
       expect(nonCurrentSessionEl?.classes()).toContain('hover:bg-gray-100')
     })

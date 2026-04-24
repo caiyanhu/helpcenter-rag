@@ -1,15 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import ChatMessages from '@/components/ChatMessages.vue'
-
-type Source = { id: string; title: string }
-type Message = {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  isStreaming?: boolean
-  sources?: Source[]
-}
+import type { Message } from '@/stores/chat'
 
 describe('ChatMessages.vue', () => {
   it('renders nothing when messages empty', () => {
@@ -25,7 +17,7 @@ describe('ChatMessages.vue', () => {
     const avatarBlue = wrapper.find('.bg-blue-600')
     expect(avatarBlue.exists()).toBe(true)
     expect(avatarBlue.text()).toBe('U')
-    const bubble = wrapper.findAll('.bg-blue-600').at(1)
+    const bubble = wrapper.findAll('.bg-blue-600')[1]
     expect(bubble).not.toBe(null)
     expect(bubble?.text()).toContain('Hi')
   })
@@ -66,7 +58,7 @@ describe('ChatMessages.vue', () => {
         role: 'assistant',
         content: 'Here are sources',
         isStreaming: false,
-        sources: [{ id: 's1', title: 'Source 1' }],
+        sources: [{ articleId: 1, title: 'Source 1', categoryPath: '/', excerpt: 'E' }],
       },
     ]
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
@@ -76,7 +68,7 @@ describe('ChatMessages.vue', () => {
 
   it('hides SourcePanel for user messages', () => {
     const messages: Message[] = [
-      { id: 'm6', role: 'user', content: 'User says hi', sources: [{ id: 's1', title: 'Source' }] },
+      { id: 'm6', role: 'user', content: 'User says hi' },
     ]
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
     const hasSourcePanel = wrapper.findComponent({ name: 'SourcePanel' }).exists()
