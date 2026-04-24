@@ -33,7 +33,7 @@ helpcenter-rag/
 | 后端 | NestJS + TypeScript + TypeORM + SQLite + LangChain |
 | 前端 | Vue 3 + Vite + Tailwind CSS + Pinia |
 | 向量数据库 | Milvus (Docker) |
-| Embedding | bge-base-zh-v1.5 (Ollama) |
+| Embedding | bge-m3 (Ollama) |
 | LLM | Deepseek API (OpenAI 兼容) |
 
 ## 编码规范
@@ -115,8 +115,8 @@ npm run dev
 1. **模型切换**：Embedding、LLM、Reranker 均通过适配器模式实现，修改 `config.yaml` 即可切换实现
 2. **文档缓存**：`content-processor/data/raw/` 是本地缓存，不提交到 git（已添加 `.gitignore`）
 3. **SQLite**：`backend/data/chat.db` 同样不提交到 git
-4. **Milvus Collection**：首次运行会自动创建，维度由当前 embedding 模型决定（bge-base-zh 为 768）
-5. **Ollama**：确保服务已启动且模型已拉取（`ollama pull bge-base-zh-v1.5`）
+4. **Milvus Collection**：首次运行会自动创建，维度由当前 embedding 模型决定（bge-m3 为 1024）
+5. **Ollama**：确保服务已启动且模型已拉取（`ollama pull bge-m3`）
 6. **Deepseek API Key**：通过环境变量 `DEEPSEEK_API_KEY` 传入，不要硬编码
 
 ## 常用命令

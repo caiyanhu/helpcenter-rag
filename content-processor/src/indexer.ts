@@ -4,7 +4,7 @@ import { Document } from '@langchain/core/documents';
 const COLLECTION_NAME = 'helpcenter_chunks';
 const VECTOR_DIM = 1024; // bge-large-zh-v1.5 dimension
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_EMBEDDING_MODEL || 'dengcao/bge-large-zh-v1.5';
+const OLLAMA_MODEL = process.env.OLLAMA_EMBEDDING_MODEL || 'bge-m3';
 
 let milvusClient: MilvusClient | null = null;
 

@@ -1,6 +1,6 @@
 embedding:
   provider: ollama
-  model: dengcao/bge-large-zh-v1.5
+  model: bge-m3
   baseUrl: http://localhost:11434
 
 llm:
