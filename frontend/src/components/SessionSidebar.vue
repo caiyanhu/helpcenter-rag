@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Session } from '../stores/chat.store.js'
+import type { Session } from '../stores/chat'
 
 defineProps<{
   sessions: Session[]

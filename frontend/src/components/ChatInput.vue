@@ -54,4 +54,6 @@ function send() {
   emit('send', content)
   input.value = ''
 }
+
+defineExpose({ input, send })
 </script>

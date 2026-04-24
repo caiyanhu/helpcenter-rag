@@ -155,15 +155,34 @@ export const useChatStore = defineStore('chat', () => {
             try {
               const data = JSON.parse(line.slice(6))
 
-              if (data.data?.type === 'token') {
-                assistantMessage.content += data.data.content
-              } else if (data.data?.type === 'done') {
-                assistantMessage.content = data.data.content
-                assistantMessage.sources = data.data.sources
-                assistantMessage.isStreaming = false
-              } else if (data.data?.type === 'error') {
-                error.value = data.data.error
-                assistantMessage.isStreaming = false
+              if (data.type === 'token') {
+                // Find and replace the entire message object for reactivity
+                const index = messages.value.findIndex(m => m.id === assistantMessage.id)
+                if (index !== -1) {
+                  messages.value[index] = {
+                    ...messages.value[index],
+                    content: messages.value[index].content + data.content
+                  }
+                }
+              } else if (data.type === 'done') {
+                const index = messages.value.findIndex(m => m.id === assistantMessage.id)
+                if (index !== -1) {
+                  messages.value[index] = {
+                    ...messages.value[index],
+                    content: data.content,
+                    sources: data.sources,
+                    isStreaming: false
+                  }
+                }
+              } else if (data.type === 'error') {
+                error.value = data.error
+                const index = messages.value.findIndex(m => m.id === assistantMessage.id)
+                if (index !== -1) {
+                  messages.value[index] = {
+                    ...messages.value[index],
+                    isStreaming: false
+                  }
+                }
               }
             } catch (e) {
               // Ignore parse errors

@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useChatStore } from '../stores/chat.store.js'
+import { useChatStore } from '../stores/chat'
 import SessionSidebar from '../components/SessionSidebar.vue'
 import ChatMessages from '../components/ChatMessages.vue'
 import ChatInput from '../components/ChatInput.vue'

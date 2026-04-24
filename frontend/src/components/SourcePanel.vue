@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Source } from '../stores/chat.store.js'
+import type { Source } from '../stores/chat'
 
 defineProps<{
   sources: Source[]

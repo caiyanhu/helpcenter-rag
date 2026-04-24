@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Message } from '../stores/chat.store.js'
+import type { Message } from '../stores/chat'
 import SourcePanel from './SourcePanel.vue'
 
 defineProps<{

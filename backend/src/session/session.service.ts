@@ -31,6 +31,7 @@ export class SessionService {
   }
 
   async deleteSession(id: string): Promise<void> {
+    await this.messageRepo.delete({ sessionId: id });
     await this.sessionRepo.delete(id);
   }
 
