@@ -100,14 +100,21 @@ export async function indexChunks(chunks: Document[]): Promise<void> {
     chunksByArticle.get(articleId)!.push(chunk);
   }
 
-  let totalIndexed = 0;
+  // Progress tracking setup
+  let totalChunks = 0;
+  for (const arr of chunksByArticle.values()) totalChunks += arr.length;
+  let processedChunks = 0;
+  const startTime = Date.now();
+  let overallBatchCount = 0;
 
+  // Calculate per-article total batches for nicer progress info
   for (const [articleId, articleChunks] of chunksByArticle) {
     // Delete existing chunks for this article
     await deleteByArticleId(articleId);
 
     // Embed in batches
     const batchSize = 8;
+    const nbatches = Math.ceil(articleChunks.length / batchSize);
     for (let i = 0; i < articleChunks.length; i += batchSize) {
       const batch = articleChunks.slice(i, i + batchSize);
       const texts = batch.map(c => c.pageContent);
@@ -129,12 +136,16 @@ export async function indexChunks(chunks: Document[]): Promise<void> {
         collection_name: COLLECTION_NAME,
         data: insertData,
       });
-
-      totalIndexed += batch.length;
+      // Progress update
+      processedChunks += batch.length;
+      const elapsed = Date.now() - startTime;
+      const percent = totalChunks > 0 ? Math.min(100, Math.round((processedChunks / totalChunks) * 100)) : 0;
+      const etaMs = totalChunks > 0 && processedChunks > 0 ? Math.max(0, Math.round((elapsed / processedChunks) * (totalChunks - processedChunks))) : 0;
+      console.log(`Progress: ${percent}% (${processedChunks}/${totalChunks}) | Article ${articleId} Batch ${Math.floor(i / batchSize) + 1}/${nbatches} | ETA ${Math.round(etaMs/1000)}s`);
     }
   }
 
-  console.log(`Indexed ${totalIndexed} chunks into Milvus`);
+  console.log(`Indexed ${processedChunks} chunks into Milvus`);
 }
 
 export async function resetCollection(): Promise<void> {
