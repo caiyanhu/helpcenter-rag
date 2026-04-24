@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 *.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
 .pnpm-store/
 
 # Build outputs
@@ -34,6 +37,7 @@ Thumbs.db
 
 # Docker volumes
 docker-volumes/
+volumes/
 
 # Test coverage
 coverage/

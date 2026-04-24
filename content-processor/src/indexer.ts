@@ -1,9 +1,10 @@
 import { MilvusClient } from '@zilliz/milvus2-sdk-node';
-import { Document } from 'langchain/document';
-import { OllamaEmbeddings } from '@langchain/community/embeddings/ollama';
+import { Document } from '@langchain/core/documents';
 
 const COLLECTION_NAME = 'helpcenter_chunks';
-const VECTOR_DIM = 768; // bge-base-zh-v1.5 dimension
+const VECTOR_DIM = 1024; // bge-large-zh-v1.5 dimension
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+const OLLAMA_MODEL = process.env.OLLAMA_EMBEDDING_MODEL || 'dengcao/bge-large-zh-v1.5';
 
 let milvusClient: MilvusClient | null = null;
 
@@ -13,6 +14,25 @@ function getMilvusClient(): MilvusClient {
     milvusClient = new MilvusClient({ address });
   }
   return milvusClient;
+}
+
+async function embedBatch(texts: string[]): Promise<number[][]> {
+  const response = await fetch(`${OLLAMA_BASE_URL}/api/embed`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      input: texts,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Ollama embed failed: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.embeddings;
 }
 
 export async function ensureCollection(): Promise<void> {
@@ -59,7 +79,7 @@ export async function deleteByArticleId(articleId: number): Promise<void> {
 
   await client.delete({
     collection_name: COLLECTION_NAME,
-    expr: `article_id == ${articleId}`,
+    filter: `article_id == ${articleId}`,
   });
 
   console.log(`Deleted existing chunks for article ${articleId}`);
@@ -69,11 +89,6 @@ export async function indexChunks(chunks: Document[]): Promise<void> {
   const client = getMilvusClient();
 
   await ensureCollection();
-
-  const embeddings = new OllamaEmbeddings({
-    model: 'bge-base-zh-v1.5',
-    baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
-  });
 
   // Group chunks by article_id for batch processing
   const chunksByArticle = new Map<number, Document[]>();
@@ -92,13 +107,13 @@ export async function indexChunks(chunks: Document[]): Promise<void> {
     await deleteByArticleId(articleId);
 
     // Embed in batches
-    const batchSize = 32;
+    const batchSize = 8;
     for (let i = 0; i < articleChunks.length; i += batchSize) {
       const batch = articleChunks.slice(i, i + batchSize);
       const texts = batch.map(c => c.pageContent);
 
       console.log(`Embedding batch ${Math.floor(i / batchSize) + 1} for article ${articleId} (${batch.length} chunks)...`);
-      const vectors = await embeddings.embedDocuments(texts);
+      const vectors = await embedBatch(texts);
 
       // Insert into Milvus
       const insertData = batch.map((chunk, idx) => ({

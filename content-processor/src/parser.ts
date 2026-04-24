@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { Document } from 'langchain/document';
+import { Document } from '@langchain/core/documents';
 import { CachedArticle } from './types.js';
 
 export function parseHtmlToDocuments(articles: CachedArticle[]): Document[] {

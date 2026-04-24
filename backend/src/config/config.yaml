@@ -1,13 +1,13 @@
 embedding:
   provider: ollama
-  model: bge-base-zh-v1.5
+  model: dengcao/bge-large-zh-v1.5
   baseUrl: http://localhost:11434
 
 llm:
   provider: deepseek
   model: deepseek-chat
   baseUrl: https://api.deepseek.com/v1
-  apiKey: ${DEEPSEEK_API_KEY}
+  apiKey: sk-ffb5f7f635c64c3f9fe394252dfd2bcb
 
 reranker:
   provider: none

@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { MilvusClient } from '@zilliz/milvus2-sdk-node';
-import { OllamaEmbeddings } from '@langchain/community/embeddings/ollama';
 import { ConfigService } from '../config/config.service.js';
 
 const COLLECTION_NAME = 'helpcenter_chunks';
-const VECTOR_DIM = 768;
+const VECTOR_DIM = 1024;
 
 export interface SearchResult {
   id: string;
@@ -15,23 +14,38 @@ export interface SearchResult {
   categoryPath: string;
 }
 
+async function embedBatch(texts: string[], model: string, baseUrl: string): Promise<number[][]> {
+  const response = await fetch(`${baseUrl}/api/embed`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, input: texts }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Ollama embed failed: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.embeddings;
+}
+
 @Injectable()
 export class MilvusService {
   private client: MilvusClient;
-  private embeddings: OllamaEmbeddings;
+  private model: string;
+  private baseUrl: string;
 
   constructor(private config: ConfigService) {
     const address = process.env.MILVUS_ADDRESS || 'localhost:19530';
     this.client = new MilvusClient({ address });
-
-    this.embeddings = new OllamaEmbeddings({
-      model: this.config.embedding.model,
-      baseUrl: this.config.embedding.baseUrl,
-    });
+    this.model = this.config.embedding.model;
+    this.baseUrl = this.config.embedding.baseUrl;
   }
 
   async search(query: string, topK: number = 5): Promise<SearchResult[]> {
-    const queryVector = await this.embeddings.embedQuery(query);
+    const vectors = await embedBatch([query], this.model, this.baseUrl);
+    const queryVector = vectors[0];
 
     const results = await this.client.search({
       collection_name: COLLECTION_NAME,
@@ -56,18 +70,15 @@ export class MilvusService {
   }
 
   async searchWithMMR(query: string, fetchK: number = 10, lambdaMult: number = 0.5): Promise<SearchResult[]> {
-    // Fetch more results initially
     const candidates = await this.search(query, fetchK);
 
     if (candidates.length <= 5) {
       return candidates;
     }
 
-    // Simple MMR implementation
     const selected: SearchResult[] = [];
     const remaining = [...candidates];
 
-    // Select first by relevance
     selected.push(remaining.shift()!);
 
     while (selected.length < 5 && remaining.length > 0) {
@@ -75,7 +86,7 @@ export class MilvusService {
       let bestIndex = 0;
 
       for (let i = 0; i < remaining.length; i++) {
-        const relevance = 1 / (1 + remaining[i].score); // Convert distance to similarity
+        const relevance = 1 / (1 + remaining[i].score);
         const maxSimWithSelected = Math.max(
           ...selected.map(s => this.contentSimilarity(remaining[i].content, s.content))
         );
@@ -94,7 +105,6 @@ export class MilvusService {
   }
 
   private contentSimilarity(a: string, b: string): number {
-    // Simple Jaccard similarity on words
     const wordsA = new Set(a.split(/\s+/));
     const wordsB = new Set(b.split(/\s+/));
     const intersection = new Set([...wordsA].filter(x => wordsB.has(x)));
