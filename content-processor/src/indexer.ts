@@ -155,9 +155,14 @@ export async function getCollectionStats(): Promise<{ totalChunks: number }> {
   const client = getMilvusClient();
 
   await ensureCollection();
+  await client.loadCollectionSync({ collection_name: COLLECTION_NAME });
 
-  const stats = await client.getCollectionStatistics({ collection_name: COLLECTION_NAME });
+  // Use count expression for accurate real-time count
+  const countResult = await client.count({
+    collection_name: COLLECTION_NAME,
+  });
+
   return {
-    totalChunks: parseInt(stats.data.row_count || '0'),
+    totalChunks: Number(countResult.data),
   };
 }

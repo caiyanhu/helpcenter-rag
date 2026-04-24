@@ -3,8 +3,8 @@ import { Document } from '@langchain/core/documents';
 
 export async function splitDocuments(documents: Document[]): Promise<Document[]> {
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 350,
-    chunkOverlap: 50,
+    chunkSize: 450,
+    chunkOverlap: 65,
     separators: ['\n\n', '\n', '。', '！', '？', '.', '!', '?', ' ', ''],
   });
 
