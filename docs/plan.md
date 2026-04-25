@@ -64,18 +64,18 @@ helpcenter-rag/
 
 ## 二、技术选型总览
 
-| 层级 | 选型 | 备注 |
-|------|------|------|
-| **文档获取** | Node.js + axios + cheerio | 调用 ecloud 4 个 API |
-| **文本切分** | LangChain `RecursiveCharacterTextSplitter` | chunk 300-500 字，重叠 50 字 |
-| **Embedding** | `bge-base-zh-v1.5` via Ollama | 768 维，配置化可切换 |
-| **向量数据库** | Milvus (已有 Docker) | Collection: `helpcenter_chunks` |
-| **Rerank** | Phase 1: 无 | 预留接口，配置切换 |
-| **Query 改写** | Deepseek LLM | 仅短查询（< 10 字）做意图澄清 |
-| **LLM** | Deepseek API (`deepseek-chat`) | OpenAI 兼容格式 |
-| **后端框架** | NestJS + TypeORM | 会话管理、配置管理 |
-| **前端框架** | Vue 3 + Vite + Tailwind CSS + Pinia | 流式 SSE、引用来源 |
-| **对话历史** | SQLite (`backend/data/chat.db`) | 文件级，gitignore |
+| 层级           | 选型                                       | 备注                            |
+| -------------- | ------------------------------------------ | ------------------------------- |
+| **文档获取**   | Node.js + axios + cheerio                  | 调用 ecloud 4 个 API            |
+| **文本切分**   | LangChain `RecursiveCharacterTextSplitter` | chunk 300-500 字，重叠 50 字    |
+| **Embedding**  | `bge-base-zh-v1.5` via Ollama              | 768 维，配置化可切换            |
+| **向量数据库** | Milvus (已有 Docker)                       | Collection: `helpcenter_chunks` |
+| **Rerank**     | Phase 1: 无                                | 预留接口，配置切换              |
+| **Query 改写** | Deepseek LLM                               | 仅短查询（< 10 字）做意图澄清   |
+| **LLM**        | Deepseek API (`deepseek-chat`)             | OpenAI 兼容格式                 |
+| **后端框架**   | NestJS + TypeORM                           | 会话管理、配置管理              |
+| **前端框架**   | Vue 3 + Vite + Tailwind CSS + Pinia        | 流式 SSE、引用来源              |
+| **对话历史**   | SQLite (`backend/data/chat.db`)            | 文件级，gitignore               |
 
 ## 三、核心数据流
 
@@ -154,11 +154,11 @@ ChatView.vue
 // 仅当用户输入长度 < 10 时触发
 async function rewriteQuery(query: string): Promise<string> {
   if (query.length >= 10) return query;
-  
+
   const prompt = `将以下用户问题改写为更精确、更具体的技术查询，以便在帮助中心文档中检索到相关内容。
 原问题：${query}
 改写后：`;
-  
+
   // 调用 Deepseek，temperature=0.3
   return await llm.complete(prompt);
 }
@@ -189,10 +189,10 @@ Collection: helpcenter_chunks
 Fields:
   - id: INT64 (auto_id)
   - vector: FLOAT_VECTOR (768 dim)
-  - content: VARCHAR(8192)          # 原文 chunk
+  - content: VARCHAR(8192) # 原文 chunk
   - article_id: INT64
   - article_title: VARCHAR(512)
-  - category_path: VARCHAR(1024)    # 如 "云主机 > 操作指南 > 实例生命周期"
+  - category_path: VARCHAR(1024) # 如 "云主机 > 操作指南 > 实例生命周期"
   - chunk_index: INT32
   - created_at: TIMESTAMP
 ```
@@ -212,24 +212,24 @@ llm:
   apiKey: ${DEEPSEEK_API_KEY}
 
 reranker:
-  provider: none        # Phase 1: 不启用
+  provider: none # Phase 1: 不启用
   # provider: ollama    # Phase 2: 可切换
   # model: bge-reranker-base
 
 queryRewrite:
   enabled: true
-  minQueryLength: 10    # 少于 10 字才改写
+  minQueryLength: 10 # 少于 10 字才改写
 ```
 
 ## 五、实施阶段
 
-| 阶段 | 内容 | 预估时间 |
-|------|------|---------|
-| **Phase 1** | 基础设施：项目初始化、Docker Compose、Milvus 连接测试 | 1h |
-| **Phase 2** | content-processor：fetcher、cache、parser、chunker、indexer、CLI | 3-4h |
-| **Phase 3** | backend：NestJS 初始化、配置模块、Milvus 服务、LLM 适配器、Query 改写、RAG Chat、Session 管理、SSE | 4-5h |
-| **Phase 4** | frontend：Vue 3 初始化、Pinia、SessionSidebar、ChatMessages、ChatInput、TypingEffect、SourcePanel、SSE 对接 | 3-4h |
-| **Phase 5** | 集成测试：端到端测试、Prompt 调优、chunk 策略调优 | 1-2h |
+| 阶段        | 内容                                                                                                        | 预估时间 |
+| ----------- | ----------------------------------------------------------------------------------------------------------- | -------- |
+| **Phase 1** | 基础设施：项目初始化、Docker Compose、Milvus 连接测试                                                       | 1h       |
+| **Phase 2** | content-processor：fetcher、cache、parser、chunker、indexer、CLI                                            | 3-4h     |
+| **Phase 3** | backend：NestJS 初始化、配置模块、Milvus 服务、LLM 适配器、Query 改写、RAG Chat、Session 管理、SSE          | 4-5h     |
+| **Phase 4** | frontend：Vue 3 初始化、Pinia、SessionSidebar、ChatMessages、ChatInput、TypingEffect、SourcePanel、SSE 对接 | 3-4h     |
+| **Phase 5** | 集成测试：端到端测试、Prompt 调优、chunk 策略调优                                                           | 1-2h     |
 
 **总计：约 12-16 小时**
 

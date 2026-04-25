@@ -1,12 +1,12 @@
 export interface Candidate {
-  id: string;
-  content: string;
-  score: number;
-  articleId: number;
-  articleTitle: string;
-  categoryPath: string;
+  id: string
+  content: string
+  score: number
+  articleId: number
+  articleTitle: string
+  categoryPath: string
 }
 
 export interface RerankerAdapter {
-  rerank(query: string, candidates: Candidate[]): Promise<Candidate[]>;
+  rerank(query: string, candidates: Candidate[]): Promise<Candidate[]>
 }

@@ -1,21 +1,21 @@
-import { IsString, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsArray } from 'class-validator'
 
 export class ChatRequestDto {
   @IsString()
-  sessionId: string;
+  sessionId: string
 
   @IsString()
-  message: string;
+  message: string
 }
 
 export class ChatResponseChunk {
-  type: 'token' | 'done' | 'error';
-  content?: string;
+  type: 'token' | 'done' | 'error'
+  content?: string
   sources?: Array<{
-    articleId: number;
-    title: string;
-    categoryPath: string;
-    excerpt: string;
-  }>;
-  error?: string;
+    articleId: number
+    title: string
+    categoryPath: string
+    excerpt: string
+  }>
+  error?: string
 }

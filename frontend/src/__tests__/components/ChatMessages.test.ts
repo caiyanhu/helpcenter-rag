@@ -67,9 +67,7 @@ describe('ChatMessages.vue', () => {
   })
 
   it('hides SourcePanel for user messages', () => {
-    const messages: Message[] = [
-      { id: 'm6', role: 'user', content: 'User says hi' },
-    ]
+    const messages: Message[] = [{ id: 'm6', role: 'user', content: 'User says hi' }]
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
     const hasSourcePanel = wrapper.findComponent({ name: 'SourcePanel' }).exists()
     expect(hasSourcePanel).toBe(false)

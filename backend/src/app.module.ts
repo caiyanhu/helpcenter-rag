@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from './config/config.module.js';
-import { MilvusModule } from './milvus/milvus.module.js';
-import { LLMModule } from './llm/llm.module.js';
-import { RerankerModule } from './reranker/reranker.module.js';
-import { SessionModule } from './session/session.module.js';
-import { ChatModule } from './chat/chat.module.js';
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { ConfigModule } from './config/config.module.js'
+import { MilvusModule } from './milvus/milvus.module.js'
+import { LLMModule } from './llm/llm.module.js'
+import { RerankerModule } from './reranker/reranker.module.js'
+import { SessionModule } from './session/session.module.js'
+import { ChatModule } from './chat/chat.module.js'
 
 @Module({
   imports: [

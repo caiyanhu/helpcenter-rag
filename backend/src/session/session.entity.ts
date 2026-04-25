@@ -1,47 +1,54 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+  ManyToOne,
+} from 'typeorm'
 
 @Entity()
 export class Session {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Column({ nullable: true })
-  title: string;
+  title: string
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
-  @OneToMany(() => Message, message => message.session, { cascade: true })
-  messages: Message[];
+  @OneToMany(() => Message, (message) => message.session, { cascade: true })
+  messages: Message[]
 }
 
 @Entity()
 export class Message {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Column()
-  role: string;
+  role: string
 
   @Column({ type: 'text' })
-  content: string;
+  content: string
 
   @Column({ type: 'simple-json', nullable: true })
-  sources: Source[] | null;
+  sources: Source[] | null
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @Column()
-  sessionId: string;
+  sessionId: string
 
-  @ManyToOne(() => Session, session => session.messages)
-  session: Session;
+  @ManyToOne(() => Session, (session) => session.messages)
+  session: Session
 }
 
 export interface Source {
-  articleId: number;
-  title: string;
-  categoryPath: string;
-  excerpt: string;
+  articleId: number
+  title: string
+  categoryPath: string
+  excerpt: string
 }

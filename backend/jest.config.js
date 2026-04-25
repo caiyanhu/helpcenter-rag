@@ -10,4 +10,6 @@ module.exports = {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.spec.ts'],
-};
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+}

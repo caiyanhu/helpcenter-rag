@@ -20,18 +20,12 @@
           </div>
         </div>
 
-        <ChatMessages
-          v-else
-          :messages="chatStore.messages"
-        />
+        <ChatMessages v-else :messages="chatStore.messages" />
       </div>
 
       <!-- Input Area -->
       <div class="border-t bg-white p-4">
-        <ChatInput
-          :loading="chatStore.isLoading"
-          @send="sendMessage"
-        />
+        <ChatInput :loading="chatStore.isLoading" @send="sendMessage" />
         <div v-if="chatStore.error" class="text-red-500 text-sm mt-2">
           {{ chatStore.error }}
         </div>

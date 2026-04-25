@@ -31,9 +31,7 @@ export const useChatStore = defineStore('chat', () => {
   const error = ref<string | null>(null)
 
   // Getters
-  const currentSession = computed(() =>
-    sessions.value.find(s => s.id === currentSessionId.value)
-  )
+  const currentSession = computed(() => sessions.value.find((s) => s.id === currentSessionId.value))
 
   // Actions
   async function loadSessions() {
@@ -82,7 +80,7 @@ export const useChatStore = defineStore('chat', () => {
   async function deleteSession(sessionId: string) {
     try {
       await fetch(`/api/sessions/${sessionId}`, { method: 'DELETE' })
-      sessions.value = sessions.value.filter(s => s.id !== sessionId)
+      sessions.value = sessions.value.filter((s) => s.id !== sessionId)
       if (currentSessionId.value === sessionId) {
         currentSessionId.value = null
         messages.value = []
@@ -157,30 +155,30 @@ export const useChatStore = defineStore('chat', () => {
 
               if (data.type === 'token') {
                 // Find and replace the entire message object for reactivity
-                const index = messages.value.findIndex(m => m.id === assistantMessage.id)
+                const index = messages.value.findIndex((m) => m.id === assistantMessage.id)
                 if (index !== -1) {
                   messages.value[index] = {
                     ...messages.value[index],
-                    content: messages.value[index].content + data.content
+                    content: messages.value[index].content + data.content,
                   }
                 }
               } else if (data.type === 'done') {
-                const index = messages.value.findIndex(m => m.id === assistantMessage.id)
+                const index = messages.value.findIndex((m) => m.id === assistantMessage.id)
                 if (index !== -1) {
                   messages.value[index] = {
                     ...messages.value[index],
                     content: data.content,
                     sources: data.sources,
-                    isStreaming: false
+                    isStreaming: false,
                   }
                 }
               } else if (data.type === 'error') {
                 error.value = data.error
-                const index = messages.value.findIndex(m => m.id === assistantMessage.id)
+                const index = messages.value.findIndex((m) => m.id === assistantMessage.id)
                 if (index !== -1) {
                   messages.value[index] = {
                     ...messages.value[index],
-                    isStreaming: false
+                    isStreaming: false,
                   }
                 }
               }

@@ -1,11 +1,13 @@
 #!/bin/sh
-# Pre-commit hook: run type checks on all layers
+# Pre-commit hook: format code and run type checks
 # Full tests run in CI on push/PR
 
-echo "Running type checks..."
+echo "Running Prettier..."
+npx prettier --write . || exit 1
 
+echo "Running type checks..."
 cd frontend && npx vue-tsc --noEmit || exit 1
 cd ../backend && npx tsc --noEmit || exit 1
 cd ../content-processor && npx tsc --noEmit || exit 1
 
-echo "Type checks passed!"
+echo "Pre-commit checks passed!"

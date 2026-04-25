@@ -131,9 +131,7 @@ describe('chat store', () => {
       const store = useChatStore()
       vi.spyOn(globalThis, 'fetch')
         .mockResolvedValueOnce(new Response(JSON.stringify({ id: 's1' })))
-        .mockResolvedValueOnce(
-          createSSEResponse([{ type: 'done', content: 'ok', sources: [] }])
-        )
+        .mockResolvedValueOnce(createSSEResponse([{ type: 'done', content: 'ok', sources: [] }]))
       await store.sendMessage('hello')
       expect(store.currentSessionId).toBe('s1')
       expect(store.messages.length).toBe(2)

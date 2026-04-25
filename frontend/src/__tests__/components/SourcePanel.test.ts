@@ -4,7 +4,12 @@ import SourcePanel from '@/components/SourcePanel.vue'
 import type { Source } from '@/stores/chat'
 
 describe('SourcePanel', () => {
-  const createSource = (articleId: number, title: string, categoryPath: string, excerpt: string): Source => ({
+  const createSource = (
+    articleId: number,
+    title: string,
+    categoryPath: string,
+    excerpt: string
+  ): Source => ({
     articleId,
     title,
     categoryPath,
@@ -53,9 +58,7 @@ describe('SourcePanel', () => {
   })
 
   it('renders each source with title, categoryPath, excerpt', async () => {
-    const sources = [
-      createSource(1, 'Article Title', '/Help/FAQ', 'This is the article excerpt'),
-    ]
+    const sources = [createSource(1, 'Article Title', '/Help/FAQ', 'This is the article excerpt')]
     const wrapper = mount(SourcePanel, {
       props: { sources },
       global: { plugins: [] },

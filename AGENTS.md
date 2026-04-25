@@ -27,14 +27,14 @@ helpcenter-rag/
 
 ## 技术栈
 
-| 层级 | 技术 |
-|------|------|
-| 文档处理 | Node.js + TypeScript + LangChain + Cheerio + OllamaEmbeddings |
-| 后端 | NestJS + TypeScript + TypeORM + SQLite + LangChain |
-| 前端 | Vue 3 + Vite + Tailwind CSS + Pinia |
-| 向量数据库 | Milvus (Docker) |
-| Embedding | bge-m3 (Ollama) |
-| LLM | Deepseek API (OpenAI 兼容) |
+| 层级       | 技术                                                          |
+| ---------- | ------------------------------------------------------------- |
+| 文档处理   | Node.js + TypeScript + LangChain + Cheerio + OllamaEmbeddings |
+| 后端       | NestJS + TypeScript + TypeORM + SQLite + LangChain            |
+| 前端       | Vue 3 + Vite + Tailwind CSS + Pinia                           |
+| 向量数据库 | Milvus (Docker)                                               |
+| Embedding  | bge-m3 (Ollama)                                               |
+| LLM        | Deepseek API (OpenAI 兼容)                                    |
 
 ## 编码规范
 

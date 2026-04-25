@@ -1,16 +1,16 @@
-import { describe, it, expect } from 'vitest';
-import { parseHtmlToDocuments } from './parser';
-import { Document } from '@langchain/core/documents';
+import { describe, it, expect } from 'vitest'
+import { parseHtmlToDocuments } from './parser'
+import { Document } from '@langchain/core/documents'
 
 type CachedArticle = {
-  articleId: number;
-  title: string;
-  contentHash: string;
-  html: string;
-  categoryPath: string;
-  fetchedAt: string;
-  indexedAt?: string;
-};
+  articleId: number
+  title: string
+  contentHash: string
+  html: string
+  categoryPath: string
+  fetchedAt: string
+  indexedAt?: string
+}
 
 describe('parseHtmlToDocuments', () => {
   it('parses valid HTML to Document with correct pageContent and metadata', () => {
@@ -21,16 +21,16 @@ describe('parseHtmlToDocuments', () => {
       html: `<html><body><div>Hello   World</div></body></html>`,
       categoryPath: '/category/one',
       fetchedAt: '2026-04-24',
-    };
-    const docs = parseHtmlToDocuments([art]);
-    expect(docs).toHaveLength(1);
-    const d = docs[0];
-    expect(d).toBeInstanceOf(Document);
-    expect(d.pageContent).toContain('Hello World');
-    expect(d.metadata.articleId).toBe(1);
-    expect(d.metadata.articleTitle).toBe('First Article');
-    expect(d.metadata.categoryPath).toBe('/category/one');
-  });
+    }
+    const docs = parseHtmlToDocuments([art])
+    expect(docs).toHaveLength(1)
+    const d = docs[0]
+    expect(d).toBeInstanceOf(Document)
+    expect(d.pageContent).toContain('Hello World')
+    expect(d.metadata.articleId).toBe(1)
+    expect(d.metadata.articleTitle).toBe('First Article')
+    expect(d.metadata.categoryPath).toBe('/category/one')
+  })
 
   it('removes script/style/img/iframe/video/audio/noscript tags', () => {
     const art: CachedArticle = {
@@ -49,14 +49,14 @@ describe('parseHtmlToDocuments', () => {
       `,
       categoryPath: '/category/two',
       fetchedAt: '2026-04-24',
-    };
-    const docs = parseHtmlToDocuments([art]);
-    expect(docs).toHaveLength(1);
-    const content = docs[0].pageContent;
-    expect(content).toContain('Visible text');
-    expect(content).not.toContain('var x=1');
-    expect(content).not.toContain('no-js');
-  });
+    }
+    const docs = parseHtmlToDocuments([art])
+    expect(docs).toHaveLength(1)
+    const content = docs[0].pageContent
+    expect(content).toContain('Visible text')
+    expect(content).not.toContain('var x=1')
+    expect(content).not.toContain('no-js')
+  })
 
   it('handles multiple articles and returns multiple Documents', () => {
     const art1: CachedArticle = {
@@ -66,7 +66,7 @@ describe('parseHtmlToDocuments', () => {
       html: `<html><body>First article text</body></html>`,
       categoryPath: '/cat',
       fetchedAt: '2026-04-24',
-    };
+    }
     const art2: CachedArticle = {
       articleId: 4,
       title: 'Four',
@@ -74,12 +74,12 @@ describe('parseHtmlToDocuments', () => {
       html: `<html><body>Second article text</body></html>`,
       categoryPath: '/cat2',
       fetchedAt: '2026-04-24',
-    };
-    const docs = parseHtmlToDocuments([art1, art2]);
-    expect(docs).toHaveLength(2);
-    expect(docs[0].metadata.articleId).toBe(3);
-    expect(docs[1].metadata.articleId).toBe(4);
-  });
+    }
+    const docs = parseHtmlToDocuments([art1, art2])
+    expect(docs).toHaveLength(2)
+    expect(docs[0].metadata.articleId).toBe(3)
+    expect(docs[1].metadata.articleId).toBe(4)
+  })
 
   it('skips empty articles with no text after cleanup', () => {
     const art: CachedArticle = {
@@ -89,10 +89,10 @@ describe('parseHtmlToDocuments', () => {
       html: `<html><body><script>1</script></body></html>`,
       categoryPath: '/cat',
       fetchedAt: '2026-04-24',
-    };
-    const docs = parseHtmlToDocuments([art]);
-    expect(docs).toHaveLength(0);
-  });
+    }
+    const docs = parseHtmlToDocuments([art])
+    expect(docs).toHaveLength(0)
+  })
 
   it('collapses whitespace in pageContent', () => {
     const art: CachedArticle = {
@@ -102,9 +102,9 @@ describe('parseHtmlToDocuments', () => {
       html: `<html><body>  Hello   World\nThis  is   a   test.  </body></html>`,
       categoryPath: '/ws',
       fetchedAt: '2026-04-24',
-    };
-    const docs = parseHtmlToDocuments([art]);
-    expect(docs).toHaveLength(1);
-    expect(docs[0].pageContent).toBe('Hello World This is a test.');
-  });
-});
+    }
+    const docs = parseHtmlToDocuments([art])
+    expect(docs).toHaveLength(1)
+    expect(docs[0].pageContent).toBe('Hello World This is a test.')
+  })
+})

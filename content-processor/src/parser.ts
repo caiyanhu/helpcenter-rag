@@ -1,26 +1,23 @@
-import * as cheerio from 'cheerio';
-import { Document } from '@langchain/core/documents';
-import { CachedArticle } from './types.js';
+import * as cheerio from 'cheerio'
+import { Document } from '@langchain/core/documents'
+import { CachedArticle } from './types.js'
 
 export function parseHtmlToDocuments(articles: CachedArticle[]): Document[] {
-  const documents: Document[] = [];
+  const documents: Document[] = []
 
   for (const article of articles) {
-    const $ = cheerio.load(article.html);
+    const $ = cheerio.load(article.html)
 
     // Remove script, style, img tags
-    $('script, style, img, iframe, video, audio, noscript').remove();
+    $('script, style, img, iframe, video, audio, noscript').remove()
 
     // Extract text content
-    const bodyText = $('body').text();
-    const cleanText = bodyText
-      .replace(/\s+/g, ' ')
-      .replace(/\n+/g, '\n')
-      .trim();
+    const bodyText = $('body').text()
+    const cleanText = bodyText.replace(/\s+/g, ' ').replace(/\n+/g, '\n').trim()
 
     if (cleanText.length === 0) {
-      console.warn(`Article ${article.articleId} has no text content after parsing`);
-      continue;
+      console.warn(`Article ${article.articleId} has no text content after parsing`)
+      continue
     }
 
     documents.push(
@@ -32,9 +29,9 @@ export function parseHtmlToDocuments(articles: CachedArticle[]): Document[] {
           categoryPath: article.categoryPath,
         },
       })
-    );
+    )
   }
 
-  console.log(`Parsed ${documents.length} documents from ${articles.length} articles`);
-  return documents;
+  console.log(`Parsed ${documents.length} documents from ${articles.length} articles`)
+  return documents
 }

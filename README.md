@@ -25,14 +25,14 @@
                     └─────────────┘
 ```
 
-| 层级 | 技术 |
-|------|------|
-| 前端 | Vue 3 + Vite + Tailwind CSS + Pinia |
-| 后端 | NestJS + TypeScript + TypeORM + SQLite |
-| 文档处理 | Node.js + TypeScript + LangChain + Cheerio |
-| 向量数据库 | Milvus (Docker) |
-| Embedding | bge-m3 (Ollama) |
-| LLM | Deepseek API (OpenAI 兼容) |
+| 层级       | 技术                                       |
+| ---------- | ------------------------------------------ |
+| 前端       | Vue 3 + Vite + Tailwind CSS + Pinia        |
+| 后端       | NestJS + TypeScript + TypeORM + SQLite     |
+| 文档处理   | Node.js + TypeScript + LangChain + Cheerio |
+| 向量数据库 | Milvus (Docker)                            |
+| Embedding  | bge-m3 (Ollama)                            |
+| LLM        | Deepseek API (OpenAI 兼容)                 |
 
 ## 快速开始
 
@@ -96,10 +96,10 @@ helpcenter-rag/
 
 ## 测试
 
-| 模块 | 框架 | 命令 | 覆盖率 |
-|------|------|------|--------|
-| Frontend | Vitest | `cd frontend && npm test` | 51 tests |
-| Backend | Jest | `cd backend && npm test` | 32 tests |
+| 模块              | 框架   | 命令                               | 覆盖率   |
+| ----------------- | ------ | ---------------------------------- | -------- |
+| Frontend          | Vitest | `cd frontend && npm test`          | 51 tests |
+| Backend           | Jest   | `cd backend && npm test`           | 32 tests |
 | Content-Processor | Vitest | `cd content-processor && npm test` | 28 tests |
 
 ## 常用命令
@@ -124,6 +124,7 @@ npx tsx src/cli.ts reset
 ## CI/CD
 
 每次 push 到 `main` 分支或提交 PR 时，GitHub Actions 会自动运行：
+
 - 前端测试与类型检查
 - 后端测试与构建
 - 文档处理器测试与类型检查
@@ -131,6 +132,7 @@ npx tsx src/cli.ts reset
 ## 贡献
 
 提交代码前请确保：
+
 1. 所有测试通过
 2. 代码格式化符合项目规范
 3. CI 检查通过

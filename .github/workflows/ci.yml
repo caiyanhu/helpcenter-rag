@@ -34,6 +34,12 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+
   backend:
     runs-on: ubuntu-latest
     defaults:
@@ -57,6 +63,12 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage
 
   content-processor:
     runs-on: ubuntu-latest
@@ -84,3 +96,9 @@ jobs:
 
       - name: Test
         run: npm test
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-processor-coverage
+          path: content-processor/coverage
