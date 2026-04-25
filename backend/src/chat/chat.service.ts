@@ -16,7 +16,7 @@ export class ChatService {
     private sessionService: SessionService
   ) {}
 
-  async *streamChat(sessionId: string, userMessage: string): AsyncIterable<any> {
+  async *streamChat(sessionId: string, userMessage: string): AsyncIterable<unknown> {
     try {
       // 1. Rewrite query if needed
       const query = await this.queryRewriter.rewrite(userMessage)
@@ -48,7 +48,7 @@ export class ChatService {
       // 5. Get conversation history
       const messages = await this.sessionService.getMessages(sessionId)
       const historyMessages: LLMMessage[] = messages.slice(-6).map((m) => ({
-        role: m.role as any,
+        role: m.role as 'user' | 'assistant',
         content: m.content,
       }))
 
@@ -99,8 +99,9 @@ ${context}`
           excerpt: s.excerpt,
         })),
       }
-    } catch (error: any) {
-      yield { type: 'error', error: error.message || 'Unknown error' }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      yield { type: 'error', error: message }
     }
   }
 

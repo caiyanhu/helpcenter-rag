@@ -66,12 +66,14 @@ export const useChatStore = defineStore('chat', () => {
     try {
       const response = await fetch(`/api/sessions/${sessionId}/messages`)
       const data = await response.json()
-      messages.value = data.map((m: any) => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-        sources: m.sources,
-      }))
+      messages.value = data.map(
+        (m: { id: string; role: string; content: string; sources?: unknown[] }) => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          sources: m.sources,
+        })
+      )
     } catch (e) {
       console.error('Failed to load messages:', e)
     }
@@ -188,8 +190,8 @@ export const useChatStore = defineStore('chat', () => {
           }
         }
       }
-    } catch (e: any) {
-      error.value = e.message || '发送消息失败'
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : '发送消息失败'
       assistantMessage.isStreaming = false
     } finally {
       isLoading.value = false

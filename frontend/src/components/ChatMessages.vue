@@ -33,7 +33,7 @@
           ]"
         >
           {{ message.content }}
-          <span v-if="message.isStreaming" class="streaming-cursor animate-pulse-glow"></span>
+          <span v-if="message.isStreaming" class="streaming-cursor animate-pulse-glow" />
         </div>
 
         <!-- Sources -->

@@ -5,17 +5,17 @@
     <textarea
       v-model="input"
       :disabled="loading"
-      @keydown.enter.prevent="handleEnter"
       placeholder="输入问题，按 Enter 发送，Shift+Enter 换行..."
       rows="1"
       class="chat-input flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 disabled:bg-slate-700 disabled:text-slate-500 transition-all duration-200"
       style="min-height: 44px; max-height: 120px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3)"
-    ></textarea>
+      @keydown.enter.prevent="handleEnter"
+    />
 
     <button
       :disabled="!input.trim() || loading"
-      @click="send"
       class="send-button bg-gradient-to-r from-cyan-500 to-indigo-500 text-white rounded-xl px-5 py-3 hover:shadow-lg hover:shadow-cyan-500/25 hover:scale-[1.02] disabled:from-slate-600 disabled:to-slate-700 disabled:shadow-none disabled:scale-100 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center font-medium"
+      @click="send"
     >
       <svg
         v-if="loading"
@@ -23,19 +23,12 @@
         fill="none"
         viewBox="0 0 24 24"
       >
-        <circle
-          class="opacity-30"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="3"
-        ></circle>
+        <circle class="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
         <path
           class="opacity-80"
           fill="currentColor"
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        ></path>
+        />
       </svg>
       <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path

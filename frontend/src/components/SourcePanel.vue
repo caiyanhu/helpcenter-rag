@@ -1,8 +1,8 @@
 <template>
   <div class="mt-3 pt-3 border-t border-slate-700/50 bg-black/30">
     <button
-      @click="expanded = !expanded"
       class="flex items-center gap-1 text-xs text-slate-400 hover:text-cyan-400 transition-colors"
+      @click="expanded = !expanded"
     >
       <svg
         :class="['w-4 h-4 transition-transform', expanded ? 'rotate-90' : '']"
@@ -27,8 +27,12 @@
           </span>
           <span class="font-medium text-slate-200">{{ source.title }}</span>
         </div>
-        <div class="text-slate-500 mb-1">{{ source.categoryPath }}</div>
-        <div class="text-slate-400 line-clamp-2">{{ source.excerpt }}</div>
+        <div class="text-slate-500 mb-1">
+          {{ source.categoryPath }}
+        </div>
+        <div class="text-slate-400 line-clamp-2">
+          {{ source.excerpt }}
+        </div>
       </div>
     </div>
   </div>

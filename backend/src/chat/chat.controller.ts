@@ -64,7 +64,7 @@ export class ChatController {
     status: 200,
     description: 'SSE 流式返回',
   })
-  chat(@Body() dto: ChatRequestDto): Observable<any> {
+  chat(@Body() dto: ChatRequestDto): Observable<unknown> {
     return new Observable((observer) => {
       const stream = this.chatService.streamChat(dto.sessionId, dto.message)
 

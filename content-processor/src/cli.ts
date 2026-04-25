@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { crawlCategory, fetchArticle } from './fetcher.js'
+import { crawlCategory } from './fetcher.js'
 import {
   saveCategoryInfo,
   saveOutlineTree,
@@ -14,7 +14,7 @@ import {
 import { parseHtmlToDocuments } from './parser.js'
 import { splitDocuments } from './chunker.js'
 import { indexChunks, resetCollection, getCollectionStats } from './indexer.js'
-import { Article, OutlineNode } from './types.js'
+import { Article } from './types.js'
 
 const program = new Command()
 

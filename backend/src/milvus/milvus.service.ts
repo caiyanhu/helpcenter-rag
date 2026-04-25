@@ -3,7 +3,6 @@ import { MilvusClient } from '@zilliz/milvus2-sdk-node'
 import { ConfigService } from '../config/config.service.js'
 
 const COLLECTION_NAME = 'helpcenter_chunks'
-const VECTOR_DIM = 1024
 
 export interface SearchResult {
   id: string
@@ -59,13 +58,13 @@ export class MilvusService {
       return []
     }
 
-    return results.results.map((result: any) => ({
-      id: result.id,
-      score: result.score,
-      content: result.content || '',
-      articleId: result.article_id,
-      articleTitle: result.article_title || '',
-      categoryPath: result.category_path || '',
+    return results.results.map((result) => ({
+      id: (result as { id: string }).id,
+      score: (result as { score: number }).score,
+      content: (result as { content?: string }).content || '',
+      articleId: (result as { article_id?: number }).article_id,
+      articleTitle: (result as { article_title?: string }).article_title || '',
+      categoryPath: (result as { category_path?: string }).category_path || '',
     }))
   }
 

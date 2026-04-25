@@ -15,17 +15,34 @@ export default [
         sourceType: 'module',
       },
     },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
   },
   {
-    files: ['**/*.{ts,tsx,vue}'],
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.json',
       },
     },
     rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    files: ['**/*.vue'],
+    rules: {
       'vue/multi-word-component-names': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
+    files: ['**/__tests__/**', '**/*.test.ts', '**/*.spec.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {

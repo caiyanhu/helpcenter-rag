@@ -34,10 +34,17 @@ export async function fetchOutlineTree(outlineId: number): Promise<OutlineNode> 
     throw new Error(`Failed to fetch outline tree: ${data.message}`)
   }
 
-  return parseOutlineNode(data.data)
+  return parseOutlineNode(data.data as OutlineNodeData)
 }
 
-function parseOutlineNode(data: any): OutlineNode {
+interface OutlineNodeData {
+  id: number
+  name: string
+  articleId?: number
+  children?: OutlineNodeData[]
+}
+
+function parseOutlineNode(data: OutlineNodeData): OutlineNode {
   const children =
     data.children && data.children.length > 0 ? data.children.map(parseOutlineNode) : undefined
 

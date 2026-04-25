@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <SessionSidebar
       :sessions="chatStore.sessions"
-      :currentSessionId="chatStore.currentSessionId"
+      :current-session-id="chatStore.currentSessionId"
       @select="selectSession"
       @create="createNewSession"
       @delete="deleteSession"
