@@ -1,0 +1,42 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [frontend, backend, content-processor]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci --force
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for high severity vulnerabilities
+        run: |
+          npm audit --audit-level=high --json > audit.json || true
+          if [ -s audit.json ]; then
+            echo "::warning::High severity vulnerabilities found in ${{ matrix.project }}"
+            cat audit.json | jq '.metadata.vulnerabilities' || true
+          fi
+        continue-on-error: true

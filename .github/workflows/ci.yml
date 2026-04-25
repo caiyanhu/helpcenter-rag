@@ -31,6 +31,18 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Check bundle size
+        run: |
+          echo "Bundle size report:"
+          du -sh dist/ || true
+          find dist/ -type f -name "*.js" -o -name "*.css" | xargs ls -lh | awk '{print $5, $9}' || true
+          total=$(find dist/ -type f \( -name "*.js" -o -name "*.css" \) -exec stat -f%z {} + | awk '{sum+=$1} END {printf "%.2f", sum/1024/1024}')
+          echo "Total JS+CSS size: ${total}MB"
+          if [ "$(echo "$total > 5" | bc -l)" -eq 1 ]; then
+            echo "::warning::Bundle size exceeds 5MB threshold"
+          fi
+        continue-on-error: true
+
       - name: Test
         run: npm test
 
