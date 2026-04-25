@@ -63,84 +63,34 @@ npm install
 npm run dev
 ```
 
-### 生产环境 Kubernetes 部署（开发中）
-
-生产环境使用 Kubernetes + Helm 部署，相关配置正在完善中：
+### Docker 部署（生产环境）
 
 ```bash
-# 1. 部署 Milvus 基础设施（含 etcd + minio）
-helm repo add zilliztech https://zilliztech.github.io/milvus-helm/
-helm install milvus zilliztech/milvus -n milvus --create-namespace
-
-# 2. 部署业务服务（backend + frontend + ollama）
-# kubectl apply -f k8s/  # 待补充
+# 一键部署所有服务（含 Milvus、后端、前端）
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-> **注意**：`docker-compose.prod.yml` 已废弃，不再维护。生产环境请使用 Kubernetes 方案。
-
-## 部署架构与配置文件说明
-
-本项目支持两种部署场景，使用不同的配置文件组合：
-
-### 场景一：本地开发（当前使用）
-
-本地开发时，基础设施和业务服务**分离启动**：
-
-| 服务 | 启动方式 | 配置文件/命令 |
-|------|---------|--------------|
-| **Milvus + etcd + MinIO** | Docker Compose | `docker-compose.yml` |
-| **Ollama** | Ollama Desktop 客户端 | 手动启动客户端并 `ollama pull bge-m3` |
-| **Backend** | Node.js 开发服务器 | `cd backend && npm run start:dev` |
-| **Frontend** | Vite 开发服务器 | `cd frontend && npm run dev` |
-
-**`docker-compose.yml` 的作用**：仅启动 Milvus 基础设施（etcd + minio + milvus），供本地开发时后端连接使用。
-
-### 场景二：生产环境 Kubernetes（目标架构）
-
-生产环境使用 Kubernetes + Helm 部署：
-
-| 服务 | 部署方式 | 说明 |
-|------|---------|------|
-| **Milvus + etcd + MinIO** | Helm Chart | `helm install milvus zilliztech/milvus`，一键部署三个服务 |
-| **Ollama** | K8s Deployment + PVC | 自定义 YAML，持久化模型文件 |
-| **Backend** | K8s Deployment | 从镜像仓库拉取运行 |
-| **Frontend** | K8s Deployment | 从镜像仓库拉取运行 |
-
-**Dockerfile 的作用**：`backend/Dockerfile` 和 `frontend/Dockerfile` 用于构建容器镜像，由 CI 推送到镜像仓库（GHCR），供 K8s 拉取使用。
-
-### 配置文件对照表
-
-| 文件 | 使用场景 | 说明 |
-|------|---------|------|
-| `docker-compose.yml` | ✅ 本地开发 | 仅启动 Milvus 基础设施（etcd + minio + milvus） |
-| `docker-compose.prod.yml` | ❌ 已废弃 | 原 Docker Compose 生产部署方案，已被 K8s 替代 |
-| `backend/Dockerfile` | ✅ CI 构建 | 构建后端容器镜像，推送到 ghcr.io |
-| `frontend/Dockerfile` | ✅ CI 构建 | 构建前端容器镜像，推送到 ghcr.io |
-| `k8s/` 目录（待创建） | ✅ 生产部署 | Kubernetes 业务服务编排文件 |
-
----
+前端访问 http://localhost，后端 API http://localhost:3000，API 文档 http://localhost:3000/api/docs
 
 ## 项目结构
 
 ```
 helpcenter-rag/
-├── docker-compose.yml              # 开发环境：Milvus 基础设施编排
-├── docker-compose.prod.yml         # 已废弃：原 Docker Compose 生产方案
-├── scripts/
-│   └── ollama-entrypoint.sh        # Ollama 容器启动脚本（自动拉取 bge-m3）
-├── content-processor/              # 文档处理流水线（本地 CLI 工具）
+├── docker-compose.yml              # 开发环境 Milvus 编排
+├── docker-compose.prod.yml         # 生产环境完整编排
+├── content-processor/              # 文档处理流水线
 │   ├── src/                        # TypeScript 源码
 │   ├── data/raw/                   # 原始文档缓存
 │   └── package.json
 ├── backend/                        # NestJS RAG 问答后端
 │   ├── src/
-│   ├── Dockerfile                  # 容器镜像构建（供 CI/K8s 使用）
+│   ├── Dockerfile                  # 生产镜像
 │   ├── data/                       # SQLite 文件存储位置
 │   └── package.json
 ├── frontend/                       # Vue 3 + Tailwind CSS 前端
 │   ├── src/
 │   ├── e2e/                        # Playwright E2E 测试
-│   ├── Dockerfile                  # 容器镜像构建（供 CI/K8s 使用）
+│   ├── Dockerfile                  # 生产镜像（nginx）
 │   └── package.json
 └── docs/                           # 项目文档
 ```
@@ -197,7 +147,7 @@ npx tsx src/cli.ts reset
 | CI             | push/PR        | 单元测试、类型检查、构建、覆盖率、Playwright E2E             |
 | Security Audit | push/PR + 每周 | `npm audit` 安全漏洞扫描                                     |
 | Lighthouse     | push/PR        | 前端性能评分（Performance/Accessibility/Best Practices/SEO） |
-| Deploy         | push main      | 构建并推送 backend/frontend 镜像到 GHCR（开发中）            |
+| Deploy         | push main      | Docker 镜像构建                                              |
 
 ## API 文档
 
