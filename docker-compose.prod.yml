@@ -74,6 +74,14 @@ services:
       - '11434:11434'
     volumes:
       - ollama-models:/root/.ollama
+      - ./scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    healthcheck:
+      test: ['CMD-SHELL', 'ollama list | grep -q "^bge-m3"']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 300s
     networks:
       - helpcenter-rag
     restart: unless-stopped
@@ -96,7 +104,7 @@ services:
       milvus:
         condition: service_healthy
       ollama:
-        condition: service_started
+        condition: service_healthy
     networks:
       - helpcenter-rag
     restart: unless-stopped
