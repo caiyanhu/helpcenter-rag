@@ -105,7 +105,7 @@ export async function indexChunks(chunks: Document[]): Promise<void> {
   for (const arr of chunksByArticle.values()) totalChunks += arr.length
   let processedChunks = 0
   const startTime = Date.now()
-  let overallBatchCount = 0
+  const overallBatchCount = 0
 
   // Calculate per-article total batches for nicer progress info
   for (const [articleId, articleChunks] of chunksByArticle) {

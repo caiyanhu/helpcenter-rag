@@ -16,7 +16,7 @@ describe('ChatMessages.vue', () => {
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
     const avatar = wrapper.find('.flex-row-reverse')
     expect(avatar.exists()).toBe(true)
-    const bubble = wrapper.find('.from-cyan-500')
+    const bubble = wrapper.find('.from-accent-primary')
     expect(bubble.exists()).toBe(true)
     expect(bubble.text()).toContain('Hi')
   })

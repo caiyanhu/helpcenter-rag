@@ -3,51 +3,27 @@
     <div
       v-for="message in messages"
       :key="message.id"
-      :class="[
-        'flex gap-3 animate-fade-in',
-        message.role === 'user' ? 'flex-row-reverse' : 'flex-row',
-      ]"
+      :class="['flex gap-3', message.role === 'user' ? 'flex-row-reverse' : 'flex-row']"
     >
       <!-- Avatar -->
       <div
         :class="[
-          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 shadow-lg',
+          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0',
           message.role === 'user'
-            ? 'bg-gradient-to-br from-cyan-400 to-cyan-600 text-white'
+            ? 'bg-[#00d4ff] text-white'
             : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white',
         ]"
       >
-        <svg
-          v-if="message.role === 'user'"
-          class="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
-        <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-          />
-        </svg>
+        {{ message.role === 'user' ? 'U' : 'AI' }}
       </div>
 
       <!-- Content -->
       <div
         :class="[
-          'max-w-[80%] rounded-2xl px-4 py-3 backdrop-blur-sm',
+          'max-w-[80%] rounded-2xl px-4 py-3',
           message.role === 'user'
-            ? 'bg-gradient-to-br from-cyan-500 to-indigo-500 text-white shadow-lg shadow-cyan-500/20'
-            : 'bg-slate-800/80 border border-slate-700/50 text-slate-100 shadow-lg',
+            ? 'bg-gradient-to-br from-accent-primary to-indigo-500 text-white'
+            : 'bg-slate-800/80 backdrop-blur border border-slate-700/50 text-slate-100',
         ]"
       >
         <div
@@ -57,10 +33,7 @@
           ]"
         >
           {{ message.content }}
-          <span
-            v-if="message.isStreaming"
-            class="inline-block w-0.5 h-4 bg-cyan-400 animate-pulse-glow ml-1 shadow-[0_0_8px_rgba(0,212,255,0.8)]"
-          ></span>
+          <span v-if="message.isStreaming" class="streaming-cursor animate-pulse-glow"></span>
         </div>
 
         <!-- Sources -->
@@ -86,3 +59,27 @@ defineProps<{
   messages: Message[]
 }>()
 </script>
+
+<style scoped>
+.streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background-color: #00d4ff;
+  margin-left: 4px;
+  animation: cursor-blink 1s infinite;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+}
+
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+  }
+  50% {
+    opacity: 0.3;
+    box-shadow: 0 0 4px rgba(0, 212, 255, 0.3);
+  }
+}
+</style>
