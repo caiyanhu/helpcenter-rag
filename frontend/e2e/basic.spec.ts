@@ -19,6 +19,6 @@ test.describe('HelpCenter RAG E2E', () => {
 
   test('chat input is present', async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByPlaceholder(/输入您的问题/)).toBeVisible()
+    await expect(page.getByPlaceholder(/输入问题/)).toBeVisible()
   })
 })
