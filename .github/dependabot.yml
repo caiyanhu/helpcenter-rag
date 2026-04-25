@@ -4,8 +4,7 @@ updates:
   - package-ecosystem: npm
     directory: /frontend
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     open-pull-requests-limit: 3
     labels:
       - dependencies
@@ -17,8 +16,7 @@ updates:
   - package-ecosystem: npm
     directory: /backend
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     open-pull-requests-limit: 3
     labels:
       - dependencies
@@ -30,8 +28,7 @@ updates:
   - package-ecosystem: npm
     directory: /content-processor
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     open-pull-requests-limit: 3
     labels:
       - dependencies
