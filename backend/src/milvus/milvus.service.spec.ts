@@ -34,11 +34,9 @@ describe('MilvusService', () => {
         ],
       }),
     }
-
     ;(MilvusClient as jest.MockedClass<typeof MilvusClient>).mockImplementation(
       () => mockClient as any
     )
-
     ;(globalThis as any).fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ embeddings: [Array(1024).fill(0.1)] }),
