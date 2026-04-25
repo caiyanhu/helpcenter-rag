@@ -67,6 +67,17 @@ services:
     networks:
       - helpcenter-rag
 
+  ollama:
+    container_name: helpcenter-ollama
+    image: ollama/ollama:latest
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - helpcenter-rag
+    restart: unless-stopped
+
   backend:
     container_name: helpcenter-backend
     build:
@@ -76,6 +87,7 @@ services:
       - NODE_ENV=production
       - MILVUS_HOST=milvus
       - MILVUS_PORT=19530
+      - EMBEDDING_BASE_URL=http://ollama:11434
     volumes:
       - backend-data:/app/data
     ports:
@@ -83,6 +95,8 @@ services:
     depends_on:
       milvus:
         condition: service_healthy
+      ollama:
+        condition: service_started
     networks:
       - helpcenter-rag
     restart: unless-stopped
@@ -105,6 +119,7 @@ volumes:
   minio-data:
   milvus-data:
   backend-data:
+  ollama-models:
 
 networks:
   helpcenter-rag:

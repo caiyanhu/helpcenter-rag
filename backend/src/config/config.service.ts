@@ -44,7 +44,7 @@ export class ConfigService {
         provider: process.env.EMBEDDING_PROVIDER || fileConfig.embedding?.provider || 'ollama',
         model: process.env.EMBEDDING_MODEL || fileConfig.embedding?.model || 'bge-base-zh-v1.5',
         baseUrl:
-          process.env.OLLAMA_BASE_URL || fileConfig.embedding?.baseUrl || 'http://localhost:11434',
+          process.env.EMBEDDING_BASE_URL || process.env.OLLAMA_BASE_URL || fileConfig.embedding?.baseUrl || 'http://localhost:11434',
       },
       llm: {
         provider: process.env.LLM_PROVIDER || fileConfig.llm?.provider || 'deepseek',
