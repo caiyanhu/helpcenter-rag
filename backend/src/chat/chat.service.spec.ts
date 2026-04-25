@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { ChatService } from './chat.service'
 import { MilvusService } from '../milvus/milvus.service'
-import { DeepseekAdapter } from '../llm/deepseek.adapter'
+import { LLM_ADAPTER_TOKEN } from '../llm/llm.interface'
 import { QueryRewriter } from '../llm/query-rewriter'
 import { NoOpReranker } from '../reranker/no-op.adapter'
 import { SessionService } from '../session/session.service'
@@ -40,7 +40,7 @@ describe('ChatService.streamChat', () => {
       providers: [
         ChatService,
         { provide: MilvusService, useValue: milvusMock },
-        { provide: DeepseekAdapter, useValue: llmMock },
+        { provide: LLM_ADAPTER_TOKEN, useValue: llmMock },
         { provide: QueryRewriter, useValue: queryRewriterMock },
         { provide: NoOpReranker, useValue: rerankerMock },
         { provide: SessionService, useValue: sessionServiceMock },

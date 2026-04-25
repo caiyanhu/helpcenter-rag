@@ -1,3 +1,5 @@
+export const LLM_ADAPTER_TOKEN = Symbol('LLM_ADAPTER_TOKEN')
+
 export interface LLMMessage {
   role: 'system' | 'user' | 'assistant'
   content: string

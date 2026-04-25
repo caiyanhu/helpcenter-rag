@@ -17,7 +17,7 @@
 | 服务                      | 启动方式              | 命令/文件                             |
 | ------------------------- | --------------------- | ------------------------------------- |
 | **Milvus + etcd + MinIO** | Docker Compose        | `docker-compose.yml`                  |
-| **Ollama**                | Ollama Desktop 客户端 | 启动客户端后执行 `ollama pull bge-m3` |
+| **Ollama**                | Ollama Desktop 客户端 | 启动客户端后执行 `ollama pull bge-m3`（仅用于 Embedding，LLM 通过 OpenAI 兼容 API 调用） |
 | **Backend**               | Node.js 开发服务器    | `cd backend && npm run start:dev`     |
 | **Frontend**              | Vite 开发服务器       | `cd frontend && npm run dev`          |
 
@@ -45,6 +45,24 @@ cd frontend
 npm install
 npm run dev
 ```
+
+### 环境变量配置
+
+本地开发时，**必须通过环境变量传入 LLM API Key**，不要将其写入配置文件：
+
+```bash
+# 在启动后端之前设置
+export DEEPSEEK_API_KEY=sk-your-key-here
+
+# 其他可选环境变量
+export EMBEDDING_BASE_URL=http://localhost:11434
+export LLM_BASE_URL=https://api.deepseek.com/v1
+export LLM_MODEL=deepseek-chat
+```
+
+**安全提示**：`backend/src/config/config.yaml` 已加入 `.gitignore`，不会提交到 Git。项目提供了无敏感信息的模板文件 `backend/src/config/config.example.yaml` 供参考。首次使用时，复制该模板为 `config.yaml` 并根据需要修改非敏感配置即可。
+
+**LLM 提供商说明**：本项目采用 OpenAI 兼容协议与 LLM 交互，支持任何遵循该协议的提供商（如 DeepSeek、OpenAI、Azure OpenAI 等）。默认配置以 DeepSeek 为例，切换其他提供商时只需修改 `baseUrl`、`model` 和 API Key 即可。
 
 ### 相关配置文件
 
@@ -85,7 +103,7 @@ docker-compose -f docker-compose.prod.yml up -d
 
 | 文件                           | 作用                                                                            |
 | ------------------------------ | ------------------------------------------------------------------------------- |
-| `docker-compose.prod.yml`      | 生产环境完整编排，包含 6 个服务：etcd、minio、milvus、ollama、backend、frontend |
+| `docker-compose.prod.yml`      | 生产环境完整编排，包含 6 个服务：etcd、minio、milvus、ollama（Embedding）、backend、frontend |
 | `backend/Dockerfile`           | 构建后端容器镜像                                                                |
 | `frontend/Dockerfile`          | 构建前端容器镜像                                                                |
 | `scripts/ollama-entrypoint.sh` | Ollama 容器启动脚本，自动拉取 bge-m3 模型                                       |
@@ -97,7 +115,7 @@ docker-compose.prod.yml
 ├── etcd          # Milvus 元数据存储
 ├── minio         # Milvus 文件存储
 ├── milvus        # 向量数据库
-├── ollama        # Embedding 模型服务（bge-m3）
+├── ollama        # Embedding 模型服务（bge-m3），LLM 通过 OpenAI 兼容 API 调用
 ├── backend       # NestJS 后端（从 Dockerfile 构建）
 └── frontend      # Vue 前端（从 Dockerfile 构建）
 ```
@@ -138,7 +156,7 @@ etcd、minio、milvus 是 Milvus 官方依赖的三个组件。官方 Helm Chart
 
 | 服务         | 部署方式   | 说明                                                          |
 | ------------ | ---------- | ------------------------------------------------------------- |
-| **Ollama**   | Helm Chart | `helm/helpcenter-rag/templates/ollama/`，持久化存储模型文件   |
+| **Ollama**   | Helm Chart | `helm/helpcenter-rag/templates/ollama/`，持久化存储 Embedding 模型文件（bge-m3），LLM 通过 OpenAI 兼容 API 调用 |
 | **Backend**  | Helm Chart | `helm/helpcenter-rag/templates/backend/`，从镜像仓库拉取运行  |
 | **Frontend** | Helm Chart | `helm/helpcenter-rag/templates/frontend/`，从镜像仓库拉取运行 |
 
@@ -149,7 +167,7 @@ etcd、minio、milvus 是 Milvus 官方依赖的三个组件。官方 Helm Chart
 helm repo add zilliztech https://zilliztech.github.io/milvus-helm/
 helm install milvus zilliztech/milvus -n milvus --create-namespace
 
-# 2. 部署业务服务（backend + frontend + ollama）
+# 2. 部署业务服务（backend + frontend + ollama（Embedding））
 helm install helpcenter-rag ./helm/helpcenter-rag \
   -n helpcenter-rag \
   --create-namespace \

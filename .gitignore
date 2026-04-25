@@ -15,6 +15,9 @@ build/
 .env.local
 .env.*.local
 
+# Config files with sensitive data
+backend/src/config/config.yaml
+
 # Data directories
 content-processor/data/raw/
 backend/data/

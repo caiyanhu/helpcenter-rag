@@ -1,14 +1,13 @@
-import { Injectable } from '@nestjs/common'
-import { DeepseekAdapter } from './deepseek.adapter.js'
+import { Inject, Injectable } from '@nestjs/common'
+import { LLM_ADAPTER_TOKEN, LLMAdapter } from './llm.interface.js'
 import { ConfigService } from '../config/config.service.js'
 
 @Injectable()
 export class QueryRewriter {
-  private llm: DeepseekAdapter
-
-  constructor(private config: ConfigService) {
-    this.llm = new DeepseekAdapter(config)
-  }
+  constructor(
+    @Inject(LLM_ADAPTER_TOKEN) private llm: LLMAdapter,
+    private config: ConfigService
+  ) {}
 
   async rewrite(query: string): Promise<string> {
     if (!this.config.queryRewrite.enabled) {

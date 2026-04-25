@@ -3,7 +3,7 @@ import { LLMAdapter, LLMMessage } from './llm.interface.js'
 import { ConfigService } from '../config/config.service.js'
 
 @Injectable()
-export class DeepseekAdapter implements LLMAdapter {
+export class OpenAICompatibleAdapter implements LLMAdapter {
   private readonly apiKey: string
   private readonly baseUrl: string
   private readonly model: string
@@ -12,19 +12,22 @@ export class DeepseekAdapter implements LLMAdapter {
     this.apiKey = config.llm.apiKey
     this.baseUrl = config.llm.baseUrl
     this.model = config.llm.model
+  }
 
-    if (!this.apiKey) {
-      console.warn('DEEPSEEK_API_KEY not set')
+  private buildHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
     }
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`
+    }
+    return headers
   }
 
   async *chat(messages: LLMMessage[]): AsyncIterable<string> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-      },
+      headers: this.buildHeaders(),
       body: JSON.stringify({
         model: this.model,
         messages,
@@ -34,7 +37,7 @@ export class DeepseekAdapter implements LLMAdapter {
     })
 
     if (!response.ok) {
-      throw new Error(`Deepseek API error: ${response.status} ${response.statusText}`)
+      throw new Error(`LLM API error: ${response.status} ${response.statusText}`)
     }
 
     const reader = response.body!.getReader()
@@ -69,10 +72,7 @@ export class DeepseekAdapter implements LLMAdapter {
   async complete(prompt: string): Promise<string> {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-      },
+      headers: this.buildHeaders(),
       body: JSON.stringify({
         model: this.model,
         messages: [{ role: 'user', content: prompt }],
@@ -82,7 +82,7 @@ export class DeepseekAdapter implements LLMAdapter {
     })
 
     if (!response.ok) {
-      throw new Error(`Deepseek API error: ${response.status} ${response.statusText}`)
+      throw new Error(`LLM API error: ${response.status} ${response.statusText}`)
     }
 
     const data = await response.json()

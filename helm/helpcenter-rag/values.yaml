@@ -50,9 +50,9 @@ backend:
     embedding:
       baseUrl: 'http://ollama:11434'
     llm:
-      provider: 'deepseek'
-      model: 'deepseek-chat'
-      baseUrl: 'https://api.deepseek.com/v1'
+      provider: 'ollama'
+      model: 'qwen3:4b'
+      baseUrl: 'http://ollama:11434/v1'
     queryRewrite:
       enabled: true
       minQueryLength: 10
@@ -133,6 +133,13 @@ ollama:
     storageClass: 'fast-ssd'
     accessMode: ReadWriteOnce
 
+  env:
+    - name: OLLAMA_MAX_LOADED_MODELS
+      value: '2'
+    - name: OLLAMA_MAX_RUNNERS
+      value: '2'
+    - name: OLLAMA_NUM_PARALLEL
+      value: '2'
   model:
     name: 'bge-m3'
     pullOnStartup: true

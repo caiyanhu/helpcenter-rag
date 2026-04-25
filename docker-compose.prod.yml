@@ -76,6 +76,10 @@ services:
       - ollama-models:/root/.ollama
       - ./scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
     entrypoint: ['/bin/sh', '/entrypoint.sh']
+    environment:
+      - OLLAMA_MAX_LOADED_MODELS=2
+      - OLLAMA_MAX_RUNNERS=2
+      - OLLAMA_NUM_PARALLEL=2
     healthcheck:
       test: ['CMD-SHELL', 'ollama list | grep -q "^bge-m3"']
       interval: 10s

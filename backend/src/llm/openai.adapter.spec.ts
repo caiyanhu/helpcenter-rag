@@ -1,14 +1,14 @@
-import { DeepseekAdapter } from './deepseek.adapter'
+import { OpenAICompatibleAdapter } from './openai.adapter'
 import { ConfigService } from '../config/config.service'
 
-describe('DeepseekAdapter', () => {
-  let adapter: DeepseekAdapter
+describe('OpenAICompatibleAdapter', () => {
+  let adapter: OpenAICompatibleAdapter
 
   beforeEach(() => {
     const configMock = {
       llm: { apiKey: 'test', baseUrl: 'http://test', model: 'test-model' },
     } as any
-    adapter = new DeepseekAdapter(configMock)
+    adapter = new OpenAICompatibleAdapter(configMock)
   })
 
   it('chat should yield content tokens from SSE stream', async () => {

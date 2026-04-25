@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common'
-import { DeepseekAdapter } from './deepseek.adapter.js'
+import { OpenAICompatibleAdapter } from './openai.adapter.js'
 import { QueryRewriter } from './query-rewriter.js'
+import { LLM_ADAPTER_TOKEN } from './llm.interface.js'
 
 @Module({
-  providers: [DeepseekAdapter, QueryRewriter],
-  exports: [DeepseekAdapter, QueryRewriter],
+  providers: [
+    { provide: LLM_ADAPTER_TOKEN, useClass: OpenAICompatibleAdapter },
+    QueryRewriter,
+  ],
+  exports: [LLM_ADAPTER_TOKEN, QueryRewriter],
 })
 export class LLMModule {}

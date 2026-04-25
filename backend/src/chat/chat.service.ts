@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { MilvusService, SearchResult } from '../milvus/milvus.service.js'
-import { DeepseekAdapter } from '../llm/deepseek.adapter.js'
+import { LLM_ADAPTER_TOKEN, LLMMessage } from '../llm/llm.interface.js'
+import { LLMAdapter } from '../llm/llm.interface.js'
 import { QueryRewriter } from '../llm/query-rewriter.js'
 import { NoOpReranker } from '../reranker/no-op.adapter.js'
 import { SessionService } from '../session/session.service.js'
-import { LLMMessage } from '../llm/llm.interface.js'
 
 @Injectable()
 export class ChatService {
   constructor(
     private milvus: MilvusService,
-    private llm: DeepseekAdapter,
+    @Inject(LLM_ADAPTER_TOKEN) private llm: LLMAdapter,
     private queryRewriter: QueryRewriter,
     private reranker: NoOpReranker,
     private sessionService: SessionService

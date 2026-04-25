@@ -4,7 +4,7 @@
 [![Security Audit](https://github.com/caiyanhu/helpcenter-rag/actions/workflows/audit.yml/badge.svg)](https://github.com/caiyanhu/helpcenter-rag/actions/workflows/audit.yml)
 [![Lighthouse](https://github.com/caiyanhu/helpcenter-rag/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/caiyanhu/helpcenter-rag/actions/workflows/lighthouse.yml)
 
-> 基于 RAG（检索增强生成）的帮助中心问答系统，将 ecloud.10086.cn 帮助中心的技术文档索引到 Milvus 向量数据库中，通过 Deepseek LLM 结合检索到的内容回答用户问题。
+> 基于 RAG（检索增强生成）的帮助中心问答系统，将 ecloud.10086.cn 帮助中心的技术文档索引到 Milvus 向量数据库中，通过 OpenAI 兼容的大语言模型（LLM）结合检索到的内容回答用户问题。
 
 ## 技术架构
 
@@ -16,7 +16,8 @@
                             │
                             ▼
                     ┌─────────────┐
-                    │ Deepseek    │
+                    │ OpenAI      │
+                    │ Compatible  │
                     │ LLM API     │
                     └─────────────┘
                             ▲
@@ -34,7 +35,7 @@
 | 文档处理   | Node.js + TypeScript + LangChain + Cheerio |
 | 向量数据库 | Milvus (Docker)                            |
 | Embedding  | bge-m3 (Ollama)                            |
-| LLM        | Deepseek API (OpenAI 兼容)                 |
+| LLM        | OpenAI 兼容 API（如 DeepSeek、OpenAI 等）  |
 
 ## 快速开始
 
@@ -63,6 +64,22 @@ npm install
 npm run dev
 ```
 
+### 环境变量配置
+
+后端支持通过环境变量覆盖 `config.yaml` 中的配置，**推荐在本地开发时通过环境变量传入 LLM API Key**：
+
+```bash
+# 在启动后端之前设置（支持任何 OpenAI 兼容的 LLM 提供商）
+export DEEPSEEK_API_KEY=sk-your-key-here
+
+# 其他可选环境变量
+export EMBEDDING_BASE_URL=http://localhost:11434
+export LLM_BASE_URL=https://api.deepseek.com/v1
+export LLM_MODEL=deepseek-chat
+```
+
+**注意**：不要将 API Key 写入 `backend/src/config/config.yaml` 并提交到 Git。该文件已加入 `.gitignore`，项目提供了一个无敏感信息的模板文件 `backend/src/config/config.example.yaml` 供参考。
+
 ### Kubernetes 部署（生产环境）
 
 ```bash
@@ -70,7 +87,7 @@ npm run dev
 helm repo add zilliztech https://zilliztech.github.io/milvus-helm/
 helm install milvus zilliztech/milvus -n milvus --create-namespace
 
-# 2. 部署业务服务（backend + frontend + ollama）
+# 2. 部署业务服务（backend + frontend + ollama（Embedding））
 helm install helpcenter-rag ./helm/helpcenter-rag \
   -n helpcenter-rag \
   --create-namespace \
