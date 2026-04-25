@@ -1,0 +1,179 @@
+# Default values for helpcenter-rag.
+# This is a YAML-formatted file.
+
+# -- Global settings
+global:
+  # -- Docker image registry
+  imageRegistry: 'ghcr.io'
+  # -- Image pull secrets
+  imagePullSecrets: []
+
+# -- Namespace override
+namespaceOverride: ''
+
+# =============================================================================
+# BACKEND
+# =============================================================================
+backend:
+  enabled: true
+
+  image:
+    registry: ''
+    repository: 'caiyanhu/helpcenter-rag-backend'
+    tag: 'latest'
+    pullPolicy: Always
+
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2
+      memory: 1Gi
+
+  service:
+    type: ClusterIP
+    port: 3000
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: 'fast-ssd'
+    accessMode: ReadWriteOnce
+
+  config:
+    milvus:
+      host: 'milvus.milvus.svc.cluster.local'
+      port: '19530'
+    embedding:
+      baseUrl: 'http://ollama:11434'
+    llm:
+      provider: 'deepseek'
+      model: 'deepseek-chat'
+      baseUrl: 'https://api.deepseek.com/v1'
+    queryRewrite:
+      enabled: true
+      minQueryLength: 10
+
+  secrets:
+    deepseekApiKey: ''
+
+  readinessProbe:
+    enabled: true
+    path: '/api/docs'
+    initialDelaySeconds: 15
+    periodSeconds: 10
+
+  livenessProbe:
+    enabled: true
+    path: '/api/docs'
+    initialDelaySeconds: 30
+    periodSeconds: 30
+
+# =============================================================================
+# FRONTEND
+# =============================================================================
+frontend:
+  enabled: true
+
+  image:
+    registry: ''
+    repository: 'caiyanhu/helpcenter-rag-frontend'
+    tag: 'latest'
+    pullPolicy: Always
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 128Mi
+
+  service:
+    type: ClusterIP
+    port: 80
+
+# =============================================================================
+# OLLAMA
+# =============================================================================
+ollama:
+  enabled: true
+
+  image:
+    registry: ''
+    repository: 'ollama/ollama'
+    tag: '0.6.2'
+    pullPolicy: IfNotPresent
+
+  replicas: 1
+
+  strategy:
+    type: Recreate
+
+  resources:
+    requests:
+      cpu: '2'
+      memory: '8Gi'
+    limits:
+      cpu: '4'
+      memory: '16Gi'
+
+  service:
+    type: ClusterIP
+    port: 11434
+
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: 'fast-ssd'
+    accessMode: ReadWriteOnce
+
+  model:
+    name: 'bge-m3'
+    pullOnStartup: true
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 30
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+# =============================================================================
+# INGRESS
+# =============================================================================
+ingress:
+  enabled: true
+  className: 'nginx'
+  annotations:
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    nginx.ingress.kubernetes.io/proxy-body-size: '50m'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '300'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
+    nginx.ingress.kubernetes.io/proxy-buffering: 'off'
+
+  hosts:
+    - host: 'helpcenter.example.com'
+      paths:
+        - path: '/api'
+          pathType: Prefix
+          service: 'backend'
+          port: 3000
+        - path: '/'
+          pathType: Prefix
+          service: 'frontend'
+          port: 80
+
+  tls:
+    enabled: true
+    secretName: 'helpcenter-tls'
+    hosts:
+      - 'helpcenter.example.com'

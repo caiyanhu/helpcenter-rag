@@ -1,0 +1,17 @@
+apiVersion: v2
+name: helpcenter-rag
+description: A Helm chart for deploying HelpCenter RAG application on Kubernetes
+type: application
+version: 0.1.0
+appVersion: '1.0.0'
+keywords:
+  - rag
+  - helpcenter
+  - milvus
+  - ollama
+home: https://github.com/caiyanhu/helpcenter-rag
+sources:
+  - https://github.com/caiyanhu/helpcenter-rag
+maintainers:
+  - name: caiyanhu
+    email: your-email@example.com

@@ -75,7 +75,7 @@ services:
     volumes:
       - ollama-models:/root/.ollama
       - ./scripts/ollama-entrypoint.sh:/entrypoint.sh:ro
-    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    entrypoint: ['/bin/sh', '/entrypoint.sh']
     healthcheck:
       test: ['CMD-SHELL', 'ollama list | grep -q "^bge-m3"']
       interval: 10s

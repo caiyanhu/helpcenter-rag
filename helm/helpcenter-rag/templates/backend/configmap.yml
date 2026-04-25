@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helpcenter-rag.fullname" . }}-backend-config
+  namespace: {{ include "helpcenter-rag.namespace" . }}
+  labels:
+    {{- include "helpcenter-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+data:
+  config.yaml: |
+    embedding:
+      provider: ollama
+      model: bge-m3
+      baseUrl: {{ .Values.backend.config.embedding.baseUrl }}
+
+    llm:
+      provider: {{ .Values.backend.config.llm.provider }}
+      model: {{ .Values.backend.config.llm.model }}
+      baseUrl: {{ .Values.backend.config.llm.baseUrl }}
+      apiKey: ${DEEPSEEK_API_KEY}
+
+    reranker:
+      provider: none
+
+    queryRewrite:
+      enabled: {{ .Values.backend.config.queryRewrite.enabled }}
+      minQueryLength: {{ .Values.backend.config.queryRewrite.minQueryLength }}

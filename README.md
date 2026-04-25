@@ -63,36 +63,62 @@ npm install
 npm run dev
 ```
 
-### Docker 部署（生产环境）
+### Kubernetes 部署（生产环境）
 
 ```bash
-# 一键部署所有服务（含 Milvus、后端、前端）
-docker-compose -f docker-compose.prod.yml up -d
+# 1. 部署 Milvus 基础设施
+helm repo add zilliztech https://zilliztech.github.io/milvus-helm/
+helm install milvus zilliztech/milvus -n milvus --create-namespace
+
+# 2. 部署业务服务（backend + frontend + ollama）
+helm install helpcenter-rag ./helm/helpcenter-rag \
+  -n helpcenter-rag \
+  --create-namespace \
+  -f custom-values.yaml
 ```
 
-前端访问 http://localhost，后端 API http://localhost:3000，API 文档 http://localhost:3000/api/docs
+访问地址：
+
+- 前端：https://helpcenter.example.com
+- 后端 API：https://helpcenter.example.com/api
+- API 文档：https://helpcenter.example.com/api/docs
+
+详细部署说明见 [docs/deployment.md](docs/deployment.md)。
 
 ## 项目结构
 
 ```
 helpcenter-rag/
-├── docker-compose.yml              # 开发环境 Milvus 编排
-├── docker-compose.prod.yml         # 生产环境完整编排
-├── content-processor/              # 文档处理流水线
+├── docker-compose.yml              # 开发环境：Milvus 基础设施编排
+├── docker-compose.prod.yml         # 单服务器生产部署（Docker Compose）
+├── helm/
+│   └── helpcenter-rag/             # K8s 生产部署（Helm Chart）
+│       ├── Chart.yaml              # Chart 元数据
+│       ├── values.yaml             # 默认配置值
+│       └── templates/              # K8s 资源模板
+│           ├── backend/            # 后端服务（Deployment + Service + PVC）
+│           ├── frontend/           # 前端服务（Deployment + Service）
+│           ├── ollama/             # Ollama 服务（Deployment + Service + PVC）
+│           ├── ingress.yml         # 统一入口路由
+│           └── secrets.yml         # 敏感信息配置
+├── scripts/
+│   └── ollama-entrypoint.sh        # Ollama 自动拉取模型脚本
+├── content-processor/              # 文档处理流水线（本地 CLI 工具）
 │   ├── src/                        # TypeScript 源码
 │   ├── data/raw/                   # 原始文档缓存
 │   └── package.json
 ├── backend/                        # NestJS RAG 问答后端
 │   ├── src/
-│   ├── Dockerfile                  # 生产镜像
+│   ├── Dockerfile                  # 生产镜像（供 CI/K8s 使用）
 │   ├── data/                       # SQLite 文件存储位置
 │   └── package.json
 ├── frontend/                       # Vue 3 + Tailwind CSS 前端
 │   ├── src/
 │   ├── e2e/                        # Playwright E2E 测试
-│   ├── Dockerfile                  # 生产镜像（nginx）
+│   ├── Dockerfile                  # 生产镜像（供 CI/K8s 使用）
 │   └── package.json
 └── docs/                           # 项目文档
+│   └── deployment.md               # 部署架构说明
 ```
 
 ## 测试

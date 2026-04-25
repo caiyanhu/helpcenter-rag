@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "helpcenter-rag.fullname" . }}-ollama
+  namespace: {{ include "helpcenter-rag.namespace" . }}
+  labels:
+    {{- include "helpcenter-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+spec:
+  selector:
+    {{- include "helpcenter-rag.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: ollama
+  ports:
+    - port: {{ .Values.ollama.service.port }}
+      targetPort: {{ .Values.ollama.service.port }}
+      protocol: TCP
+  type: {{ .Values.ollama.service.type }}

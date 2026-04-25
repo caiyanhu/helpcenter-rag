@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helpcenter-rag.fullname" . }}-backend
+  namespace: {{ include "helpcenter-rag.namespace" . }}
+  labels:
+    {{- include "helpcenter-rag.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      {{- include "helpcenter-rag.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "helpcenter-rag.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+        - name: backend
+          image: {{ include "helpcenter-rag.image" (dict "image" .Values.backend.image "global" .Values.global) }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backend.service.port }}
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: MILVUS_HOST
+              value: {{ .Values.backend.config.milvus.host | quote }}
+            - name: MILVUS_PORT
+              value: {{ .Values.backend.config.milvus.port | quote }}
+            - name: EMBEDDING_BASE_URL
+              value: {{ .Values.backend.config.embedding.baseUrl | quote }}
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "helpcenter-rag.fullname" . }}-secrets
+                  key: deepseek-api-key
+          volumeMounts:
+            {{- if .Values.backend.persistence.enabled }}
+            - name: backend-data
+              mountPath: /app/data
+            {{- end }}
+            - name: config
+              mountPath: /app/src/config/config.yaml
+              subPath: config.yaml
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- if .Values.backend.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.backend.readinessProbe.path }}
+              port: {{ .Values.backend.service.port }}
+            initialDelaySeconds: {{ .Values.backend.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.readinessProbe.periodSeconds }}
+          {{- end }}
+          {{- if .Values.backend.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.backend.livenessProbe.path }}
+              port: {{ .Values.backend.service.port }}
+            initialDelaySeconds: {{ .Values.backend.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.livenessProbe.periodSeconds }}
+          {{- end }}
+      volumes:
+        {{- if .Values.backend.persistence.enabled }}
+        - name: backend-data
+          persistentVolumeClaim:
+            claimName: {{ include "helpcenter-rag.fullname" . }}-backend-data
+        {{- end }}
+        - name: config
+          configMap:
+            name: {{ include "helpcenter-rag.fullname" . }}-backend-config
