@@ -11,24 +11,22 @@ describe('ChatMessages.vue', () => {
     expect(wrapper.text().trim()).toBe('')
   })
 
-  it('renders user message with U avatar and blue styling', () => {
+  it('renders user message with avatar and gradient styling', () => {
     const messages: Message[] = [{ id: 'm1', role: 'user', content: 'Hi' }]
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
-    const avatarBlue = wrapper.find('.bg-blue-600')
-    expect(avatarBlue.exists()).toBe(true)
-    expect(avatarBlue.text()).toBe('U')
-    const bubble = wrapper.findAll('.bg-blue-600')[1]
-    expect(bubble).not.toBe(null)
-    expect(bubble?.text()).toContain('Hi')
+    const avatar = wrapper.find('.flex-row-reverse')
+    expect(avatar.exists()).toBe(true)
+    const bubble = wrapper.find('.from-cyan-500')
+    expect(bubble.exists()).toBe(true)
+    expect(bubble.text()).toContain('Hi')
   })
 
-  it('renders assistant message with AI avatar and white styling', () => {
+  it('renders assistant message with avatar and glass styling', () => {
     const messages: Message[] = [{ id: 'm2', role: 'assistant', content: 'Hello' }]
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
-    const avatarAI = wrapper.find('.bg-gray-200')
-    expect(avatarAI.exists()).toBe(true)
-    expect(avatarAI.text()).toBe('AI')
-    const bubbleAI = wrapper.find('.bg-white')
+    const avatar = wrapper.find('.flex-row')
+    expect(avatar.exists()).toBe(true)
+    const bubbleAI = wrapper.find('[class*="bg-slate-800"]')
     expect(bubbleAI.exists()).toBe(true)
     expect(bubbleAI.text()).toContain('Hello')
   })
@@ -38,7 +36,7 @@ describe('ChatMessages.vue', () => {
       { id: 'm3', role: 'assistant', content: 'Typing...', isStreaming: true },
     ]
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
-    const indicator = wrapper.find('.animate-pulse')
+    const indicator = wrapper.find('.animate-pulse-glow')
     expect(indicator.exists()).toBe(true)
   })
 
@@ -47,7 +45,7 @@ describe('ChatMessages.vue', () => {
       { id: 'm4', role: 'assistant', content: 'Done', isStreaming: false },
     ]
     const wrapper = shallowMount(ChatMessages, { props: { messages } })
-    const indicator = wrapper.find('.animate-pulse')
+    const indicator = wrapper.find('.animate-pulse-glow')
     expect(indicator.exists()).toBe(false)
   })
 

@@ -1,8 +1,8 @@
 <template>
-  <div class="mt-3 pt-3 border-t border-gray-200">
+  <div class="mt-3 pt-3 border-t border-slate-700/50 bg-black/30">
     <button
       @click="expanded = !expanded"
-      class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+      class="flex items-center gap-1 text-xs text-slate-400 hover:text-cyan-400 transition-colors"
     >
       <svg
         :class="['w-4 h-4 transition-transform', expanded ? 'rotate-90' : '']"
@@ -15,20 +15,20 @@
       <span>引用来源 ({{ sources.length }})</span>
     </button>
 
-    <div v-if="expanded" class="mt-2 space-y-2">
+    <div v-if="expanded" class="mt-2 space-y-2 transition-all duration-300 ease-in-out">
       <div
         v-for="(source, index) in sources"
         :key="source.articleId"
-        class="bg-gray-50 rounded-lg p-3 text-xs"
+        class="bg-slate-800/50 rounded-lg p-3 text-xs border-l-2 border-cyan-500/50"
       >
         <div class="flex items-center gap-2 mb-1">
-          <span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">
+          <span class="bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded font-medium">
             [^{{ index + 1 }}]
           </span>
-          <span class="font-medium text-gray-700">{{ source.title }}</span>
+          <span class="font-medium text-slate-200">{{ source.title }}</span>
         </div>
-        <div class="text-gray-500 mb-1">{{ source.categoryPath }}</div>
-        <div class="text-gray-600 line-clamp-2">{{ source.excerpt }}</div>
+        <div class="text-slate-500 mb-1">{{ source.categoryPath }}</div>
+        <div class="text-slate-400 line-clamp-2">{{ source.excerpt }}</div>
       </div>
     </div>
   </div>

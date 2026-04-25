@@ -34,8 +34,8 @@ describe('SessionSidebar', () => {
     })
   })
 
-  describe('highlights current session with blue styling', () => {
-    it('applies blue styling to current session', () => {
+  describe('highlights current session with accent styling', () => {
+    it('applies accent styling to current session', () => {
       const sessions = [
         createSession('1', 'Session One', '2024-01-15T10:00:00Z'),
         createSession('2', 'Session Two', '2024-01-16T14:30:00Z'),
@@ -45,11 +45,11 @@ describe('SessionSidebar', () => {
       })
 
       const currentSessionEl = wrapper.findAll('.group')[0]
-      expect(currentSessionEl?.classes()).toContain('bg-blue-50')
-      expect(currentSessionEl?.classes()).toContain('text-blue-700')
+      expect(currentSessionEl?.exists()).toBe(true)
+      expect(currentSessionEl?.classes().join(' ')).toMatch(/border-l/)
     })
 
-    it('does not apply blue styling to non-current sessions', () => {
+    it('does not apply accent styling to non-current sessions', () => {
       const sessions = [
         createSession('1', 'Session One', '2024-01-15T10:00:00Z'),
         createSession('2', 'Session Two', '2024-01-16T14:30:00Z'),
@@ -59,8 +59,7 @@ describe('SessionSidebar', () => {
       })
 
       const nonCurrentSessionEl = wrapper.findAll('.group')[1]
-      expect(nonCurrentSessionEl?.classes()).not.toContain('bg-blue-50')
-      expect(nonCurrentSessionEl?.classes()).toContain('hover:bg-gray-100')
+      expect(nonCurrentSessionEl?.classes().join(' ')).not.toMatch(/border-l/)
     })
   })
 

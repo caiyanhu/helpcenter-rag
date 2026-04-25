@@ -1,9 +1,9 @@
 <template>
-  <div class="w-64 bg-white border-r flex flex-col h-full">
-    <div class="p-4 border-b">
+  <div class="w-64 bg-[#0d1117] border-r border-[rgba(255,255,255,0.08)] flex flex-col h-full">
+    <div class="p-4 border-b border-[rgba(255,255,255,0.08)]">
       <button
         @click="$emit('create')"
-        class="w-full bg-blue-600 text-white rounded-lg py-2 px-4 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+        class="w-full bg-gradient-to-r from-[#00d4ff] to-[#6366f1] text-white rounded-lg py-2 px-4 transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:scale-[1.02]"
       >
         <span>+</span>
         <span>新对话</span>
@@ -15,25 +15,25 @@
         v-for="session in sessions"
         :key="session.id"
         :class="[
-          'group flex items-center justify-between p-3 rounded-lg cursor-pointer mb-1',
+          'group flex items-center justify-between p-3 rounded-lg cursor-pointer mb-1 transition-all duration-200',
           currentSessionId === session.id
-            ? 'bg-blue-50 text-blue-700'
-            : 'hover:bg-gray-100 text-gray-700',
+            ? 'bg-[rgba(0,212,255,0.08)] text-[#00d4ff] border-l-2 border-[#00d4ff]'
+            : 'hover:bg-[rgba(255,255,255,0.05)] text-[#94a3b8]',
         ]"
         @click="$emit('select', session.id)"
       >
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium truncate">
+          <p class="text-sm font-medium truncate text-[#f1f5f9]">
             {{ session.title || '新对话' }}
           </p>
-          <p class="text-xs text-gray-400">
+          <p class="text-xs text-[#64748b]">
             {{ formatDate(session.createdAt) }}
           </p>
         </div>
 
         <button
           @click.stop="$emit('delete', session.id)"
-          class="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 hover:text-red-600 rounded transition-all"
+          class="opacity-0 group-hover:opacity-100 p-1 hover:bg-[rgba(239,68,68,0.2)] hover:text-[#ef4444] rounded transition-all duration-200"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -46,7 +46,7 @@
         </button>
       </div>
 
-      <div v-if="sessions.length === 0" class="text-center text-gray-400 py-8 text-sm">
+      <div v-if="sessions.length === 0" class="text-center text-[#64748b] py-8 text-sm">
         暂无对话记录
       </div>
     </div>

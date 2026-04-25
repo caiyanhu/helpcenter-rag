@@ -40,3 +40,4 @@ volumes/
 
 # Test coverage
 coverage/
+frontend/test-results/
