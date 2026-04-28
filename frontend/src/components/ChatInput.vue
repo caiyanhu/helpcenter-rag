@@ -9,7 +9,7 @@
       rows="1"
       class="chat-input flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 disabled:bg-slate-700 disabled:text-slate-500 transition-all duration-200"
       style="min-height: 44px; max-height: 120px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3)"
-      @keydown.enter.prevent="handleEnter"
+      @keydown="handleKeydown"
     />
 
     <button
@@ -55,12 +55,15 @@ const emit = defineEmits<{
 
 const input = ref('')
 
-function handleEnter(event: KeyboardEvent) {
-  if (event.shiftKey) {
-    // Allow new line
-    return
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter') {
+    if (event.shiftKey) {
+      event.stopPropagation()
+    } else {
+      event.preventDefault()
+      send()
+    }
   }
-  send()
 }
 
 function send() {
