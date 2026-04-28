@@ -44,6 +44,7 @@ describe('MilvusService', () => {
 
     const configMock = {
       embedding: { model: 'bge-m3', baseUrl: 'http://localhost:11434' },
+      retrieval: { topK: 20, similarityThreshold: 0.6 },
     } as any
 
     service = new MilvusService(configMock)
@@ -66,7 +67,7 @@ describe('MilvusService', () => {
       results: [
         {
           id: 'a',
-          score: 0.1,
+          score: 0.61,
           content: 'a content',
           article_id: 1,
           article_title: 'A',
@@ -74,7 +75,7 @@ describe('MilvusService', () => {
         },
         {
           id: 'b',
-          score: 0.2,
+          score: 0.65,
           content: 'b content',
           article_id: 2,
           article_title: 'B',
@@ -82,7 +83,7 @@ describe('MilvusService', () => {
         },
         {
           id: 'c',
-          score: 0.3,
+          score: 0.70,
           content: 'c content',
           article_id: 3,
           article_title: 'C',
@@ -90,7 +91,7 @@ describe('MilvusService', () => {
         },
         {
           id: 'd',
-          score: 0.4,
+          score: 0.75,
           content: 'd content',
           article_id: 4,
           article_title: 'D',
@@ -98,7 +99,7 @@ describe('MilvusService', () => {
         },
         {
           id: 'e',
-          score: 0.5,
+          score: 0.80,
           content: 'e content',
           article_id: 5,
           article_title: 'E',
@@ -106,7 +107,7 @@ describe('MilvusService', () => {
         },
         {
           id: 'f',
-          score: 0.6,
+          score: 0.85,
           content: 'f content',
           article_id: 6,
           article_title: 'F',

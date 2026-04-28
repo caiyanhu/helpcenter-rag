@@ -42,15 +42,19 @@ export class MilvusService {
     this.baseUrl = this.config.embedding.baseUrl
   }
 
-  async search(query: string, topK: number = 5): Promise<SearchResult[]> {
+  async search(query: string, topK?: number, similarityThreshold?: number): Promise<SearchResult[]> {
+    const effectiveTopK = topK ?? this.config.retrieval.topK
+    const threshold = similarityThreshold ?? this.config.retrieval.similarityThreshold
+
     const vectors = await embedBatch([query], this.model, this.baseUrl)
     const queryVector = vectors[0]
 
     const results = await this.client.search({
       collection_name: COLLECTION_NAME,
       vector: queryVector,
-      topk: topK,
-      metric_type: 'L2',
+      topk: effectiveTopK,
+      metric_type: 'COSINE',
+      params: { nprobe: 16 },
       output_fields: ['content', 'article_id', 'article_title', 'category_path'],
     })
 
@@ -58,7 +62,7 @@ export class MilvusService {
       return []
     }
 
-    return results.results.map((result) => ({
+    const mapped = results.results.map((result) => ({
       id: (result as { id: string }).id,
       score: (result as { score: number }).score,
       content: (result as { content?: string }).content || '',
@@ -66,6 +70,9 @@ export class MilvusService {
       articleTitle: (result as { article_title?: string }).article_title || '',
       categoryPath: (result as { category_path?: string }).category_path || '',
     }))
+
+    // COSINE: higher score = more similar, filter out low-similarity results
+    return mapped.filter((r) => r.score >= threshold)
   }
 
   async searchWithMMR(
@@ -89,7 +96,7 @@ export class MilvusService {
       let bestIndex = 0
 
       for (let i = 0; i < remaining.length; i++) {
-        const relevance = 1 / (1 + remaining[i].score)
+        const relevance = remaining[i].score
         const maxSimWithSelected = Math.max(
           ...selected.map((s) => this.contentSimilarity(remaining[i].content, s.content))
         )
