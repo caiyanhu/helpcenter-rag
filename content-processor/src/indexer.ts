@@ -65,7 +65,7 @@ export async function ensureCollection(): Promise<void> {
     collection_name: COLLECTION_NAME,
     field_name: 'vector',
     index_type: 'IVF_FLAT',
-    metric_type: 'L2',
+    metric_type: 'COSINE',
     params: { nlist: 128 },
   })
 
