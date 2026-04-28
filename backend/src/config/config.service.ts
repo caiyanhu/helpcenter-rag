@@ -15,6 +15,11 @@ interface AppConfig {
     baseUrl: string
     apiKey: string
   }
+  retrieval: {
+    topK: number
+    similarityThreshold: number
+    finalK: number
+  }
   reranker: {
     provider: string
     model?: string
@@ -22,6 +27,7 @@ interface AppConfig {
   queryRewrite: {
     enabled: boolean
     minQueryLength: number
+    semanticRewrite: boolean
   }
 }
 
@@ -55,6 +61,14 @@ export class ConfigService {
           process.env.LLM_BASE_URL || fileConfig.llm?.baseUrl || 'https://api.deepseek.com/v1',
         apiKey: envKey || fileConfig.llm?.apiKey || '',
       },
+      retrieval: {
+        topK: Number(process.env.RETRIEVAL_TOP_K) || fileConfig.retrieval?.topK || 20,
+        similarityThreshold:
+          Number(process.env.RETRIEVAL_SIMILARITY_THRESHOLD) ||
+          fileConfig.retrieval?.similarityThreshold ||
+          0.6,
+        finalK: Number(process.env.RETRIEVAL_FINAL_K) || fileConfig.retrieval?.finalK || 5,
+      },
       reranker: {
         provider: process.env.RERANKER_PROVIDER || fileConfig.reranker?.provider || 'none',
         model: fileConfig.reranker?.model,
@@ -62,6 +76,7 @@ export class ConfigService {
       queryRewrite: {
         enabled: fileConfig.queryRewrite?.enabled ?? true,
         minQueryLength: fileConfig.queryRewrite?.minQueryLength ?? 10,
+        semanticRewrite: fileConfig.queryRewrite?.semanticRewrite ?? true,
       },
     }
   }
@@ -72,6 +87,10 @@ export class ConfigService {
 
   get llm() {
     return this.config.llm
+  }
+
+  get retrieval() {
+    return this.config.retrieval
   }
 
   get reranker() {
