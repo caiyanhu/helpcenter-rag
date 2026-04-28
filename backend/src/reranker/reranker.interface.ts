@@ -1,3 +1,5 @@
+export const RERANKER_ADAPTER_TOKEN = Symbol('RERANKER_ADAPTER_TOKEN')
+
 export interface Candidate {
   id: string
   content: string
