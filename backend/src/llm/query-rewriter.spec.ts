@@ -7,6 +7,7 @@ describe('QueryRewriter', () => {
     ({
       llm: { apiKey: 'test', baseUrl: 'http://test', model: 'test-model' },
       embedding: { provider: 'ollama', model: 'bge-m3', baseUrl: 'http://localhost:11434' },
+      retrieval: { topK: 20, similarityThreshold: 0.6, finalK: 5 },
       reranker: { provider: 'none' },
       queryRewrite: { enabled: true, minQueryLength: 5 },
       ...overrides,
@@ -28,21 +29,21 @@ describe('QueryRewriter', () => {
       createConfig({ queryRewrite: { enabled: false, minQueryLength: 5 } })
     )
     const res = await qr.rewrite('query')
-    expect(res).toBe('query')
+    expect(res).toEqual(['query'])
   })
 
   it('short query: returns original', async () => {
     const qr = new QueryRewriter(createLLMMock(), createConfig())
     const res = await qr.rewrite('short')
-    expect(res).toBe('short')
+    expect(res).toEqual(['short'])
   })
 
   it('rewrite: uses LLM.complete and returns rewritten', async () => {
     const llmMock = createLLMMock()
     llmMock.complete = jest.fn().mockResolvedValue('rewritten query')
     const qr = new QueryRewriter(llmMock, createConfig())
-    const res = await qr.rewrite('hi')
-    expect(res).toBe('rewritten query')
+    const res = await qr.rewrite('hi this is a long query')
+    expect(res).toEqual(['rewritten query'])
   })
 
   it('rewrite failure: returns original on error', async () => {
@@ -50,6 +51,6 @@ describe('QueryRewriter', () => {
     llmMock.complete = jest.fn().mockRejectedValue(new Error('fail'))
     const qr = new QueryRewriter(llmMock, createConfig())
     const res = await qr.rewrite('another long query')
-    expect(res).toBe('another long query')
+    expect(res).toEqual(['another long query'])
   })
 })
