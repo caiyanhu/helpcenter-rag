@@ -3,8 +3,9 @@ import { ChatService } from './chat.service'
 import { MilvusService } from '../milvus/milvus.service'
 import { LLM_ADAPTER_TOKEN } from '../llm/llm.interface'
 import { QueryRewriter } from '../llm/query-rewriter'
-import { NoOpReranker } from '../reranker/no-op.adapter'
+import { RERANKER_ADAPTER_TOKEN } from '../reranker/reranker.interface'
 import { SessionService } from '../session/session.service'
+import { ConfigService } from '../config/config.service'
 
 // Lightweight Open API interfaces for typing in tests (if real ones differ, rely on any)
 type SearchResult = {
@@ -19,7 +20,7 @@ type SearchResult = {
 describe('ChatService.streamChat', () => {
   let service: ChatService
   // Mocks
-  const milvusMock = { searchWithMMR: jest.fn() } as any
+  const milvusMock = { search: jest.fn() } as any
   const llmMock = {
     chat: jest.fn(),
   } as any
@@ -30,6 +31,9 @@ describe('ChatService.streamChat', () => {
     addMessage: jest.fn(),
     getSession: jest.fn(),
     updateSessionTitle: jest.fn(),
+  } as any
+  const configMock = {
+    retrieval: { topK: 20, similarityThreshold: 0.6, finalK: 5 },
   } as any
 
   const sessionId = 'sess-1'
@@ -42,8 +46,9 @@ describe('ChatService.streamChat', () => {
         { provide: MilvusService, useValue: milvusMock },
         { provide: LLM_ADAPTER_TOKEN, useValue: llmMock },
         { provide: QueryRewriter, useValue: queryRewriterMock },
-        { provide: NoOpReranker, useValue: rerankerMock },
+        { provide: RERANKER_ADAPTER_TOKEN, useValue: rerankerMock },
         { provide: SessionService, useValue: sessionServiceMock },
+        { provide: ConfigService, useValue: configMock },
       ],
     }).compile()
 
@@ -55,7 +60,7 @@ describe('ChatService.streamChat', () => {
       'This is a test message to check the streaming path in chat service implementation.'
 
     // Prepare mocks for the happy path
-    queryRewriterMock.rewrite.mockResolvedValue('rewritten query')
+    queryRewriterMock.rewrite.mockResolvedValue(['rewritten query'])
     const milvusResults: SearchResult[] = [
       {
         id: 'r1',
@@ -82,7 +87,7 @@ describe('ChatService.streamChat', () => {
         categoryPath: 'cat/3',
       },
     ]
-    milvusMock.searchWithMMR.mockResolvedValue(milvusResults)
+    milvusMock.search.mockResolvedValue(milvusResults)
     rerankerMock.rerank.mockImplementation((_q: any, items: any[]) => Promise.resolve(items))
     // Simulate history messages returned by sessionService
     sessionServiceMock.getMessages.mockResolvedValue([
@@ -106,17 +111,16 @@ describe('ChatService.streamChat', () => {
     expect(chunks[0]).toHaveProperty('type', 'token')
     expect(chunks[0]).toHaveProperty('content', 'Hello')
     expect(chunks[1]).toHaveProperty('type', 'token')
-    expect(chunks[1]).toHaveProperty('content', ' world [^1] [^2]')
+    expect(chunks[1]).toHaveProperty('content', ' world  ')
 
-    // Validate done chunk and that sources were parsed
     const doneChunk = chunks.find((c) => c.type === 'done')
     expect(doneChunk).toBeTruthy()
-    expect(doneChunk.content).toBe('Hello world [^1] [^2]')
+    expect(doneChunk.content).toBe('Hello world')
     expect(doneChunk).toHaveProperty('sources')
-    // Expect two sources corresponding to [^1] and [^2]
-    expect(doneChunk.sources).toHaveLength(2)
+    expect(doneChunk.sources).toHaveLength(3)
     expect(doneChunk.sources[0]).toHaveProperty('articleId', milvusResults[0].articleId)
     expect(doneChunk.sources[1]).toHaveProperty('articleId', milvusResults[1].articleId)
+    expect(milvusMock.search).toHaveBeenCalledWith('rewritten query')
 
     // Session messages should be added: user then assistant
     // First addMessage call for the user's message, second for the assistant response
@@ -137,8 +141,8 @@ describe('ChatService.streamChat', () => {
 
   it('error path: yields error chunk when LLM throws', async () => {
     const userMessage = 'Trigger error path'
-    queryRewriterMock.rewrite.mockResolvedValue('query')
-    milvusMock.searchWithMMR.mockResolvedValue([])
+    queryRewriterMock.rewrite.mockResolvedValue(['query'])
+    milvusMock.search.mockResolvedValue([])
     rerankerMock.rerank.mockResolvedValue([])
     sessionServiceMock.getMessages.mockResolvedValue([] as any)
     llmMock.chat.mockImplementation(async function* (_llmMessages: any) {
@@ -157,8 +161,8 @@ describe('ChatService.streamChat', () => {
 
   it('title NOT updated when session title already exists', async () => {
     const userMessage = 'Another test message to update title'
-    queryRewriterMock.rewrite.mockResolvedValue('query')
-    milvusMock.searchWithMMR.mockResolvedValue([])
+    queryRewriterMock.rewrite.mockResolvedValue(['query'])
+    milvusMock.search.mockResolvedValue([])
     rerankerMock.rerank.mockResolvedValue([])
     sessionServiceMock.getMessages.mockResolvedValue([] as any)
     llmMock.chat.mockImplementation(async function* (_llmMessages: any) {

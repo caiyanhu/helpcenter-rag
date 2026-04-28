@@ -3,8 +3,9 @@ import { MilvusService, SearchResult } from '../milvus/milvus.service.js'
 import { LLM_ADAPTER_TOKEN, LLMMessage } from '../llm/llm.interface.js'
 import { LLMAdapter } from '../llm/llm.interface.js'
 import { QueryRewriter } from '../llm/query-rewriter.js'
-import { NoOpReranker } from '../reranker/no-op.adapter.js'
+import { RERANKER_ADAPTER_TOKEN, RerankerAdapter } from '../reranker/reranker.interface.js'
 import { SessionService } from '../session/session.service.js'
+import { ConfigService } from '../config/config.service.js'
 
 @Injectable()
 export class ChatService {
@@ -12,50 +13,81 @@ export class ChatService {
     private milvus: MilvusService,
     @Inject(LLM_ADAPTER_TOKEN) private llm: LLMAdapter,
     private queryRewriter: QueryRewriter,
-    private reranker: NoOpReranker,
-    private sessionService: SessionService
+    @Inject(RERANKER_ADAPTER_TOKEN) private reranker: RerankerAdapter,
+    private sessionService: SessionService,
+    private config: ConfigService
   ) {}
 
   async *streamChat(sessionId: string, userMessage: string): AsyncIterable<unknown> {
     try {
-      // 1. Rewrite query if needed
-      const query = await this.queryRewriter.rewrite(userMessage)
+      const queries = await this.queryRewriter.rewrite(userMessage)
+      console.log(`[RAG] Query variations: ${queries.length}`, queries)
 
-      // 2. Retrieve relevant chunks
-      const results = await this.milvus.searchWithMMR(query, 10, 0.5)
+      const allResults: SearchResult[] = []
+      for (const query of queries) {
+        const results = await this.milvus.search(query)
+        console.log(`[RAG] Query "${query}" retrieved ${results.length} results`)
+        results.forEach(r => console.log(`  - ${r.articleTitle} (score: ${r.score.toFixed(4)})`))
+        allResults.push(...results)
+      }
 
-      // 3. Rerank (no-op for now)
-      const rankedResults = await this.reranker.rerank(
-        query,
-        results.map((r) => ({
-          id: r.id,
-          content: r.content,
-          score: r.score,
-          articleId: r.articleId,
-          articleTitle: r.articleTitle,
-          categoryPath: r.categoryPath,
-        }))
-      )
-
-      // 4. Build prompt with context
-      const context = rankedResults
-        .slice(0, 5)
-        .map((r, i) => {
-          return `[${i + 1}] ${r.categoryPath} > ${r.articleTitle}\n${r.content}`
+      const seenArticles = new Set<number>()
+      const uniqueResults = allResults
+        .sort((a, b) => b.score - a.score)
+        .filter(r => {
+          if (seenArticles.has(r.articleId)) return false
+          seenArticles.add(r.articleId)
+          return true
         })
-        .join('\n\n')
 
-      // 5. Get conversation history
+      console.log(`[RAG] Unique results after dedup: ${uniqueResults.length}`)
+
+      const candidates = uniqueResults.map(r => ({
+        id: r.id,
+        content: r.content,
+        score: r.score,
+        articleId: r.articleId,
+        articleTitle: r.articleTitle,
+        categoryPath: r.categoryPath,
+      }))
+
+      const rerankQuery = queries[0]
+      const reranked = await this.reranker.rerank(rerankQuery, candidates)
+      const finalK = this.config.retrieval.finalK
+      const topResults = reranked.slice(0, finalK)
+
+      console.log(`[RAG] Reranked top ${topResults.length} results:`)
+      topResults.forEach((r, i) => {
+        console.log(`[RAG] [${i + 1}] ${r.articleTitle} (ID: ${r.articleId}, score: ${r.score.toFixed(4)})`)
+      })
+
+      const context = topResults
+        .map((r) => {
+          return `【${r.categoryPath} > ${r.articleTitle}】\n${r.content}`
+        })
+        .join('\n\n---\n\n')
+
+      console.log(`[RAG] Context length: ${context.length} chars`)
+      console.log(`[RAG] Context preview:\n${context.substring(0, 500)}...`)
+
       const messages = await this.sessionService.getMessages(sessionId)
       const historyMessages: LLMMessage[] = messages.slice(-6).map((m) => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
       }))
 
-      const systemPrompt = `你是一个帮助中心客服助手。请根据以下参考资料回答用户问题。
-如果参考资料不足以回答，请明确告知用户。
-请在回答中标注引用来源，格式为 [^1]、[^2] 等。
+      const aliasNote = queries[0] !== userMessage
+        ? `\n注意：用户查询中的产品名称可能使用了简称或别名，检索时已将"${userMessage}"中的产品别名映射为标准名称"${queries[0]}"进行检索。参考资料中的"云原生数据库 PostgreSQL 版"即用户所询问的产品。\n`
+        : ''
 
+      const systemPrompt = `你是一个帮助中心客服助手。请根据以下参考资料回答用户问题。
+
+重要规则：
+1. 如果参考资料足以回答，请基于资料内容直接回答
+2. 如果参考资料不足以回答，请明确告知用户"根据现有资料，暂时无法回答该问题"
+3. **禁止在回答中使用任何形式的引用标记**，包括 [^1]、[1]、参考资料[x] 等
+4. 只输出纯文本回答，不要包含引用来源信息
+${aliasNote}
 ## 参考资料
 ${context}`
 
@@ -65,24 +97,39 @@ ${context}`
         { role: 'user', content: userMessage },
       ]
 
-      // 6. Save user message
       await this.sessionService.addMessage(sessionId, 'user', userMessage)
 
-      // 7. Stream LLM response
       let fullResponse = ''
+      const citationPatterns = [
+        /\[\^\d+\]/g,
+        /\[\d+\]/g,
+        /参考资料\[\d+\]/g,
+        /\(\s*见?[^)]*\d+[^)]*\)/g,
+      ]
 
       for await (const token of this.llm.chat(llmMessages)) {
         fullResponse += token
-        yield { type: 'token', content: token }
+        const cleanToken = citationPatterns.reduce(
+          (text, pattern) => text.replace(pattern, ''),
+          token
+        )
+        yield { type: 'token', content: cleanToken }
       }
 
-      // 8. Parse sources from response
-      const sources = this.parseSources(fullResponse, rankedResults.slice(0, 5))
+      const cleanResponse = citationPatterns.reduce(
+        (text, pattern) => text.replace(pattern, '').trim(),
+        fullResponse
+      )
 
-      // 9. Save assistant message
-      await this.sessionService.addMessage(sessionId, 'assistant', fullResponse, sources)
+      const sources = topResults.map((r) => ({
+        articleId: r.articleId,
+        title: r.articleTitle,
+        categoryPath: r.categoryPath,
+        excerpt: r.content.slice(0, 200) + '...',
+      }))
 
-      // 10. Update session title if first message
+      await this.sessionService.addMessage(sessionId, 'assistant', cleanResponse, sources)
+
       const session = await this.sessionService.getSession(sessionId)
       if (session && !session.title) {
         const title = userMessage.slice(0, 30) + (userMessage.length > 30 ? '...' : '')
@@ -91,13 +138,8 @@ ${context}`
 
       yield {
         type: 'done',
-        content: fullResponse,
-        sources: sources.map((s) => ({
-          articleId: s.articleId,
-          title: s.title,
-          categoryPath: s.categoryPath,
-          excerpt: s.excerpt,
-        })),
+        content: cleanResponse,
+        sources,
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
@@ -105,24 +147,4 @@ ${context}`
     }
   }
 
-  private parseSources(response: string, results: SearchResult[]) {
-    const sources = []
-    const citationRegex = /\[\^(\d+)\]/g
-    const matches = [...response.matchAll(citationRegex)]
-    const usedIndices = new Set(matches.map((m) => parseInt(m[1])))
-
-    for (const index of usedIndices) {
-      const result = results[index - 1]
-      if (result) {
-        sources.push({
-          articleId: result.articleId,
-          title: result.articleTitle,
-          categoryPath: result.categoryPath,
-          excerpt: result.content.slice(0, 200) + '...',
-        })
-      }
-    }
-
-    return sources
-  }
 }
