@@ -15,6 +15,11 @@ interface AppConfig {
     baseUrl: string
     apiKey: string
   }
+  mmr: {
+    enabled: boolean
+    fetchK: number
+    lambda: number
+  }
   retrieval: {
     topK: number
     similarityThreshold: number
@@ -23,6 +28,10 @@ interface AppConfig {
   reranker: {
     provider: string
     model?: string
+  }
+  hybrid: {
+    enabled: boolean
+    rrfK: number
   }
   queryRewrite: {
     enabled: boolean
@@ -61,17 +70,26 @@ export class ConfigService {
           process.env.LLM_BASE_URL || fileConfig.llm?.baseUrl || 'https://api.deepseek.com/v1',
         apiKey: envKey || fileConfig.llm?.apiKey || '',
       },
+      mmr: {
+        enabled: fileConfig.mmr?.enabled ?? true,
+        fetchK: fileConfig.mmr?.fetchK ?? 20,
+        lambda: fileConfig.mmr?.lambda ?? 0.5,
+      },
       retrieval: {
         topK: Number(process.env.RETRIEVAL_TOP_K) || fileConfig.retrieval?.topK || 20,
         similarityThreshold:
           Number(process.env.RETRIEVAL_SIMILARITY_THRESHOLD) ||
           fileConfig.retrieval?.similarityThreshold ||
-          0.6,
-        finalK: Number(process.env.RETRIEVAL_FINAL_K) || fileConfig.retrieval?.finalK || 5,
+          0.7,
+        finalK: Number(process.env.RETRIEVAL_FINAL_K) || fileConfig.retrieval?.finalK || 10,
       },
       reranker: {
         provider: process.env.RERANKER_PROVIDER || fileConfig.reranker?.provider || 'none',
         model: fileConfig.reranker?.model,
+      },
+      hybrid: {
+        enabled: fileConfig.hybrid?.enabled ?? false,
+        rrfK: fileConfig.hybrid?.rrfK ?? 60,
       },
       queryRewrite: {
         enabled: fileConfig.queryRewrite?.enabled ?? true,
@@ -89,12 +107,20 @@ export class ConfigService {
     return this.config.llm
   }
 
+  get mmr() {
+    return this.config.mmr
+  }
+
   get retrieval() {
     return this.config.retrieval
   }
 
   get reranker() {
     return this.config.reranker
+  }
+
+  get hybrid() {
+    return this.config.hybrid
   }
 
   get queryRewrite() {

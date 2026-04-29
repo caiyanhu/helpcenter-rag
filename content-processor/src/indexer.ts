@@ -1,4 +1,4 @@
-import { MilvusClient } from '@zilliz/milvus2-sdk-node'
+import { MilvusClient, DataType, FunctionType } from '@zilliz/milvus2-sdk-node'
 import { Document } from '@langchain/core/documents'
 
 const COLLECTION_NAME = 'helpcenter_chunks'
@@ -51,13 +51,23 @@ export async function ensureCollection(): Promise<void> {
   await client.createCollection({
     collection_name: COLLECTION_NAME,
     fields: [
-      { name: 'id', data_type: 5, is_primary_key: true, autoID: true }, // INT64
-      { name: 'vector', data_type: 101, dim: VECTOR_DIM }, // FLOAT_VECTOR
-      { name: 'content', data_type: 21, max_length: 8192 }, // VARCHAR
-      { name: 'article_id', data_type: 5 }, // INT64
-      { name: 'article_title', data_type: 21, max_length: 512 }, // VARCHAR
-      { name: 'category_path', data_type: 21, max_length: 1024 }, // VARCHAR
-      { name: 'chunk_index', data_type: 5 }, // INT64
+      { name: 'id', data_type: DataType.Int64, is_primary_key: true, autoID: true },
+      { name: 'vector', data_type: DataType.FloatVector, dim: VECTOR_DIM },
+      { name: 'content', data_type: DataType.VarChar, max_length: 8192, enable_analyzer: true },
+      { name: 'sparse_vector', data_type: DataType.SparseFloatVector, is_function_output: true },
+      { name: 'article_id', data_type: DataType.Int64 },
+      { name: 'article_title', data_type: DataType.VarChar, max_length: 512 },
+      { name: 'category_path', data_type: DataType.VarChar, max_length: 1024 },
+      { name: 'chunk_index', data_type: DataType.Int64 },
+    ],
+    functions: [
+      {
+        name: 'content_bm25',
+        type: FunctionType.BM25,
+        input_field_names: ['content'],
+        output_field_names: ['sparse_vector'],
+        params: {},
+      },
     ],
   })
 
@@ -67,6 +77,13 @@ export async function ensureCollection(): Promise<void> {
     index_type: 'IVF_FLAT',
     metric_type: 'COSINE',
     params: { nlist: 128 },
+  })
+
+  await client.createIndex({
+    collection_name: COLLECTION_NAME,
+    field_name: 'sparse_vector',
+    index_type: 'SPARSE_INVERTED_INDEX',
+    metric_type: 'BM25',
   })
 
   await client.loadCollectionSync({ collection_name: COLLECTION_NAME })

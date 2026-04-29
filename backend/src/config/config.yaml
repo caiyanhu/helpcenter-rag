@@ -7,16 +7,25 @@ llm:
   provider: deepseek
   model: deepseek-chat
   baseUrl: https://api.deepseek.com/v1
-  apiKey: ''
+  apiKey: 'sk-ffb5f7f635c64c3f9fe394252dfd2bcb'
+
+mmr:
+  enabled: true
+  fetchK: 20
+  lambda: 0.5
 
 retrieval:
   topK: 20
-  similarityThreshold: 0.6
-  finalK: 5
+  similarityThreshold: 0.7
+  finalK: 10
 
 reranker:
   provider: cross-encoder
   model: Xenova/bge-reranker-base
+
+hybrid:
+  enabled: false
+  rrfK: 60
 
 queryRewrite:
   enabled: true

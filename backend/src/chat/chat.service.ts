@@ -24,8 +24,15 @@ export class ChatService {
       console.log(`[RAG] Query variations: ${queries.length}`, queries)
 
       const allResults: SearchResult[] = []
+      const mmrConfig = this.config.mmr
+      const hybridConfig = this.config.hybrid
       for (const query of queries) {
-        const results = await this.milvus.search(query)
+        let results: SearchResult[]
+        if (hybridConfig.enabled) {
+          results = await this.milvus.hybridSearch(query, undefined, hybridConfig.rrfK)
+        } else {
+          results = await this.milvus.searchWithMMR(query, mmrConfig.fetchK, mmrConfig.lambda)
+        }
         console.log(`[RAG] Query "${query}" retrieved ${results.length} results`)
         results.forEach(r => console.log(`  - ${r.articleTitle} (score: ${r.score.toFixed(4)})`))
         allResults.push(...results)
@@ -80,13 +87,22 @@ export class ChatService {
         ? `\n注意：用户查询中的产品名称可能使用了简称或别名，检索时已将"${userMessage}"中的产品别名映射为标准名称"${queries[0]}"进行检索。参考资料中的"云原生数据库 PostgreSQL 版"即用户所询问的产品。\n`
         : ''
 
-      const systemPrompt = `你是一个帮助中心客服助手。请根据以下参考资料回答用户问题。
+      const systemPrompt = `你是一个中国移动 ecloud 帮助中心的专业客服助手。请根据以下参考资料回答用户问题。
+
+回答格式要求：
+1. 先给出直接、简洁的结论
+2. 然后提供详细的操作步骤或说明
+3. 最后补充相关注意事项
 
 重要规则：
-1. 如果参考资料足以回答，请基于资料内容直接回答
-2. 如果参考资料不足以回答，请明确告知用户"根据现有资料，暂时无法回答该问题"
-3. **禁止在回答中使用任何形式的引用标记**，包括 [^1]、[1]、参考资料[x] 等
-4. 只输出纯文本回答，不要包含引用来源信息
+1. **必须回答**：只要参考资料中有任何与用户问题相关的信息，就必须基于这些资料组织回答，禁止说"无法回答"
+2. **禁止推诿**：即使参考资料只有部分相关信息，也要基于现有信息尽力回答，绝对不能以"资料不足"为由拒绝回答
+3. 如果参考资料完全未涉及用户问题（如询问完全不相关的产品或内容），才可告知用户"根据现有资料，暂时无法回答该问题"
+4. **绝对禁止在回答中使用任何形式的引用标记**，包括 [^1]、[1]、参考资料[x]、（见文档x）等
+5. 只输出纯文本回答，不要包含引用来源信息、不要输出参考资料编号
+6. 可以基于参考资料中的操作步骤、参数说明、注意事项进行合理组织和概括，但不要编造参考资料中未提及的具体数值或步骤
+7. 使用与用户问题相同的语言回答（中文问题用中文回答）
+8. 如果涉及多个操作步骤，请用清晰的编号列表呈现
 ${aliasNote}
 ## 参考资料
 ${context}`

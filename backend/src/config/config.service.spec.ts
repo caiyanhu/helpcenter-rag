@@ -33,4 +33,22 @@ describe('ConfigService', () => {
     expect(typeof cfg.llm).toBe('object')
     expect(cfg.llm.provider).toBe('deepseek')
   })
+
+  it('loads hybrid config with defaults', () => {
+    mockedFs.existsSync.mockReturnValue(false)
+    const cfg = new ConfigService()
+    expect(cfg.hybrid).toBeDefined()
+    expect(cfg.hybrid.enabled).toBe(false)
+    expect(cfg.hybrid.rrfK).toBe(60)
+  })
+
+  it('loads hybrid config from YAML file', () => {
+    mockedFs.existsSync.mockReturnValue(true)
+    mockedFs.readFileSync.mockReturnValue(
+      'hybrid:\n  enabled: true\n  rrfK: 100\n'
+    )
+    const cfg = new ConfigService()
+    expect(cfg.hybrid.enabled).toBe(true)
+    expect(cfg.hybrid.rrfK).toBe(100)
+  })
 })

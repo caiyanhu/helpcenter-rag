@@ -20,7 +20,7 @@ type SearchResult = {
 describe('ChatService.streamChat', () => {
   let service: ChatService
   // Mocks
-  const milvusMock = { search: jest.fn() } as any
+  const milvusMock = { search: jest.fn(), searchWithMMR: jest.fn(), hybridSearch: jest.fn() } as any
   const llmMock = {
     chat: jest.fn(),
   } as any
@@ -33,7 +33,9 @@ describe('ChatService.streamChat', () => {
     updateSessionTitle: jest.fn(),
   } as any
   const configMock = {
-    retrieval: { topK: 20, similarityThreshold: 0.6, finalK: 5 },
+    retrieval: { topK: 20, similarityThreshold: 0.7, finalK: 5 },
+    mmr: { enabled: true, fetchK: 20, lambda: 0.5 },
+    hybrid: { enabled: false, rrfK: 60 },
   } as any
 
   const sessionId = 'sess-1'
@@ -87,7 +89,7 @@ describe('ChatService.streamChat', () => {
         categoryPath: 'cat/3',
       },
     ]
-    milvusMock.search.mockResolvedValue(milvusResults)
+    milvusMock.searchWithMMR.mockResolvedValue(milvusResults)
     rerankerMock.rerank.mockImplementation((_q: any, items: any[]) => Promise.resolve(items))
     // Simulate history messages returned by sessionService
     sessionServiceMock.getMessages.mockResolvedValue([
@@ -120,7 +122,7 @@ describe('ChatService.streamChat', () => {
     expect(doneChunk.sources).toHaveLength(3)
     expect(doneChunk.sources[0]).toHaveProperty('articleId', milvusResults[0].articleId)
     expect(doneChunk.sources[1]).toHaveProperty('articleId', milvusResults[1].articleId)
-    expect(milvusMock.search).toHaveBeenCalledWith('rewritten query')
+    expect(milvusMock.searchWithMMR).toHaveBeenCalledWith('rewritten query', 20, 0.5)
 
     // Session messages should be added: user then assistant
     // First addMessage call for the user's message, second for the assistant response
@@ -142,7 +144,7 @@ describe('ChatService.streamChat', () => {
   it('error path: yields error chunk when LLM throws', async () => {
     const userMessage = 'Trigger error path'
     queryRewriterMock.rewrite.mockResolvedValue(['query'])
-    milvusMock.search.mockResolvedValue([])
+    milvusMock.searchWithMMR.mockResolvedValue([])
     rerankerMock.rerank.mockResolvedValue([])
     sessionServiceMock.getMessages.mockResolvedValue([] as any)
     llmMock.chat.mockImplementation(async function* (_llmMessages: any) {
@@ -162,7 +164,7 @@ describe('ChatService.streamChat', () => {
   it('title NOT updated when session title already exists', async () => {
     const userMessage = 'Another test message to update title'
     queryRewriterMock.rewrite.mockResolvedValue(['query'])
-    milvusMock.search.mockResolvedValue([])
+    milvusMock.searchWithMMR.mockResolvedValue([])
     rerankerMock.rerank.mockResolvedValue([])
     sessionServiceMock.getMessages.mockResolvedValue([] as any)
     llmMock.chat.mockImplementation(async function* (_llmMessages: any) {
@@ -175,5 +177,39 @@ describe('ChatService.streamChat', () => {
 
     // Title should not be updated because a title already exists
     expect(sessionServiceMock.updateSessionTitle).not.toHaveBeenCalled()
+  })
+
+  it('uses hybridSearch when hybrid.enabled is true', async () => {
+    const userMessage = 'Test hybrid search path in chat service implementation.'
+    configMock.hybrid.enabled = true
+
+    queryRewriterMock.rewrite.mockResolvedValue(['hybrid query'])
+    const hybridResults: SearchResult[] = [
+      {
+        id: 'h1',
+        score: 0.95,
+        content: 'hybrid content 1',
+        articleId: 201,
+        articleTitle: 'H1',
+        categoryPath: 'cat/h1',
+      },
+    ]
+    milvusMock.hybridSearch.mockResolvedValue(hybridResults)
+    rerankerMock.rerank.mockImplementation((_q: any, items: any[]) => Promise.resolve(items))
+    sessionServiceMock.getMessages.mockResolvedValue([] as any)
+    llmMock.chat.mockImplementation(async function* (_llmMessages: any) {
+      yield 'Hybrid answer'
+    } as any)
+    sessionServiceMock.getSession.mockResolvedValue({ title: '' } as any)
+
+    const chunks = [] as any[]
+    for await (const c of service.streamChat(sessionId, userMessage)) chunks.push(c)
+
+    expect(milvusMock.hybridSearch).toHaveBeenCalledWith('hybrid query', undefined, 60)
+    expect(milvusMock.searchWithMMR).not.toHaveBeenCalled()
+    const doneChunk = chunks.find((c) => c.type === 'done')
+    expect(doneChunk).toBeTruthy()
+
+    configMock.hybrid.enabled = false
   })
 })

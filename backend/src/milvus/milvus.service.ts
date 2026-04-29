@@ -114,6 +114,37 @@ export class MilvusService {
     return selected
   }
 
+  async hybridSearch(query: string, topK?: number, rrfK?: number): Promise<SearchResult[]> {
+    const vectors = await embedBatch([query], this.model, this.baseUrl)
+    const queryVector = vectors[0]
+    const effectiveTopK = topK ?? this.config.retrieval.topK
+    const k = rrfK ?? this.config.hybrid.rrfK
+
+    const results = await this.client.hybridSearch({
+      collection_name: COLLECTION_NAME,
+      data: [
+        { anns_field: 'vector', data: queryVector },
+        { anns_field: 'sparse_vector', data: query },
+      ],
+      limit: effectiveTopK,
+      rerank: { strategy: 'rrf', params: { k } },
+      output_fields: ['content', 'article_id', 'article_title', 'category_path'],
+    })
+
+    if (!results.results || results.results.length === 0) {
+      return []
+    }
+
+    return results.results.map((result) => ({
+      id: (result as { id: string }).id,
+      score: (result as { score: number }).score,
+      content: (result as { content?: string }).content || '',
+      articleId: (result as { article_id?: number }).article_id,
+      articleTitle: (result as { article_title?: string }).article_title || '',
+      categoryPath: (result as { category_path?: string }).category_path || '',
+    }))
+  }
+
   private contentSimilarity(a: string, b: string): number {
     const wordsA = new Set(a.split(/\s+/))
     const wordsB = new Set(b.split(/\s+/))

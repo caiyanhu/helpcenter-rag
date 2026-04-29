@@ -33,6 +33,26 @@ describe('MilvusService', () => {
           },
         ],
       }),
+      hybridSearch: jest.fn().mockResolvedValue({
+        results: [
+          {
+            id: 'doc1',
+            score: 0.0164,
+            content: 'c1',
+            article_id: 1,
+            article_title: 'T1',
+            category_path: 'cat/1',
+          },
+          {
+            id: 'doc2',
+            score: 0.0161,
+            content: 'c2',
+            article_id: 2,
+            article_title: 'T2',
+            category_path: 'cat/2',
+          },
+        ],
+      }),
     }
     ;(MilvusClient as jest.MockedClass<typeof MilvusClient>).mockImplementation(
       () => mockClient as any
@@ -45,6 +65,7 @@ describe('MilvusService', () => {
     const configMock = {
       embedding: { model: 'bge-m3', baseUrl: 'http://localhost:11434' },
       retrieval: { topK: 20, similarityThreshold: 0.6 },
+      hybrid: { enabled: false, rrfK: 60 },
     } as any
 
     service = new MilvusService(configMock)
@@ -124,5 +145,35 @@ describe('MilvusService', () => {
   it('contentSimilarity should compute Jaccard similarity', () => {
     const sim = (service as any).contentSimilarity('foo bar', 'bar baz')
     expect(sim).toBeCloseTo(1 / 3, 4)
+  })
+
+  it('hybridSearch should return mapped results from Milvus client', async () => {
+    const res = await service.hybridSearch('hello world', 5, 60)
+    expect(Array.isArray(res)).toBe(true)
+    expect(res.length).toBe(2)
+    expect(res[0]).toHaveProperty('id', 'doc1')
+    expect(res[0]).toHaveProperty('score', 0.0164)
+    expect(res[0]).toHaveProperty('content', 'c1')
+    expect(res[0]).toHaveProperty('articleId', 1)
+    expect(res[0]).toHaveProperty('articleTitle', 'T1')
+    expect(res[0]).toHaveProperty('categoryPath', 'cat/1')
+    expect(mockClient.hybridSearch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection_name: 'helpcenter_chunks',
+        data: [
+          expect.objectContaining({ anns_field: 'vector' }),
+          expect.objectContaining({ anns_field: 'sparse_vector', data: 'hello world' }),
+        ],
+        limit: 5,
+        rerank: { strategy: 'rrf', params: { k: 60 } },
+        output_fields: ['content', 'article_id', 'article_title', 'category_path'],
+      })
+    )
+  })
+
+  it('hybridSearch should return empty array when no results', async () => {
+    mockClient.hybridSearch = jest.fn().mockResolvedValue({ results: [] })
+    const res = await service.hybridSearch('no results query')
+    expect(res).toEqual([])
   })
 })
