@@ -9,9 +9,16 @@ llm:
   baseUrl: https://api.deepseek.com/v1
   apiKey: ''
 
+retrieval:
+  topK: 20
+  similarityThreshold: 0.6
+  finalK: 5
+
 reranker:
-  provider: none
+  provider: cross-encoder
+  model: Xenova/bge-reranker-base
 
 queryRewrite:
   enabled: true
   minQueryLength: 10
+  semanticRewrite: true

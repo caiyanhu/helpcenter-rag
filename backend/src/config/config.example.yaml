@@ -22,3 +22,4 @@ reranker:
 queryRewrite:
   enabled: true
   minQueryLength: 10
+  semanticRewrite: true
