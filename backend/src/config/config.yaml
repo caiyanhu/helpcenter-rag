@@ -5,9 +5,9 @@ embedding:
 
 llm:
   provider: deepseek
-  model: deepseek-chat
-  baseUrl: https://api.deepseek.com/v1
-  apiKey: 'sk-ffb5f7f635c64c3f9fe394252dfd2bcb'
+  model: zhanlu/glm-4.7
+  baseUrl: http://10.155.208.190:31114/aigateway
+  apiKey: sk-vNrMTzdXCtHp14JiDp0BBw
 
 mmr:
   enabled: true

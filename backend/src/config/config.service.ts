@@ -46,7 +46,7 @@ export class ConfigService {
 
   constructor() {
     const configPath = path.resolve(process.cwd(), 'src', 'config', 'config.yaml')
-    const envKey = process.env.DEEPSEEK_API_KEY || ''
+    const envKey = process.env.DEEPSEEK_API_KEY || process.env.ZHIPUAI_API_KEY || ''
 
     let fileConfig: Partial<AppConfig> = {}
     if (fs.existsSync(configPath)) {

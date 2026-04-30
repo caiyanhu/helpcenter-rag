@@ -32,8 +32,16 @@
             message.role === 'user' ? 'text-white' : 'text-slate-100',
           ]"
         >
-          {{ message.content }}
-          <span v-if="message.isStreaming" class="streaming-cursor animate-pulse-glow" />
+          <span v-if="message.isThinking" class="thinking-indicator">
+            正在思考
+            <span class="thinking-dots">
+              <span class="dot" />
+              <span class="dot" />
+              <span class="dot" />
+            </span>
+          </span>
+          <span v-else>{{ message.content }}</span>
+          <span v-if="message.isStreaming && !message.isThinking" class="streaming-cursor animate-pulse-glow" />
         </div>
 
         <!-- Sources -->
@@ -80,6 +88,48 @@ defineProps<{
   50% {
     opacity: 0.3;
     box-shadow: 0 0 4px rgba(0, 212, 255, 0.3);
+  }
+}
+
+.thinking-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.thinking-dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  background-color: #94a3b8;
+  border-radius: 50%;
+  animation: dot-bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 </style>

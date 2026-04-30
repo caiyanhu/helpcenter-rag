@@ -7,6 +7,7 @@ export interface Message {
   content: string
   sources?: Source[]
   isStreaming?: boolean
+  isThinking?: boolean
 }
 
 export interface Source {
@@ -155,13 +156,21 @@ export const useChatStore = defineStore('chat', () => {
             try {
               const data = JSON.parse(line.slice(6))
 
-              if (data.type === 'token') {
-                // Find and replace the entire message object for reactivity
+              if (data.type === 'thinking') {
+                const index = messages.value.findIndex((m) => m.id === assistantMessage.id)
+                if (index !== -1) {
+                  messages.value[index] = {
+                    ...messages.value[index],
+                    isThinking: true,
+                  }
+                }
+              } else if (data.type === 'token') {
                 const index = messages.value.findIndex((m) => m.id === assistantMessage.id)
                 if (index !== -1) {
                   messages.value[index] = {
                     ...messages.value[index],
                     content: messages.value[index].content + data.content,
+                    isThinking: false,
                   }
                 }
               } else if (data.type === 'done') {

@@ -115,6 +115,8 @@ ${context}`
 
       await this.sessionService.addMessage(sessionId, 'user', userMessage)
 
+      yield { type: 'thinking' }
+
       let fullResponse = ''
       const citationPatterns = [
         /\[\^\d+\]/g,

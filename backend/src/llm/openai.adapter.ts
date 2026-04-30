@@ -57,9 +57,9 @@ export class OpenAICompatibleAdapter implements LLMAdapter {
 
           try {
             const parsed = JSON.parse(data)
-            const content = parsed.choices?.[0]?.delta?.content
-            if (content) {
-              yield content
+            const text = parsed.choices?.[0]?.delta?.content
+            if (text) {
+              yield text
             }
           } catch (e) {
             // Ignore parse errors for keep-alive lines
@@ -86,6 +86,6 @@ export class OpenAICompatibleAdapter implements LLMAdapter {
     }
 
     const data = await response.json()
-    return data.choices?.[0]?.message?.content || ''
+    return data.choices?.[0]?.message?.content ?? ''
   }
 }
